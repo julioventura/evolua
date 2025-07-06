@@ -22,15 +22,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
     )
   }
   
-  const { user, loading } = authContext
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner message="Verificando autenticação..." />
-      </div>
-    )
-  }
+  const { user } = authContext
 
   return user ? <>{children}</> : <Navigate to="/login" replace />
 }

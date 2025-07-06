@@ -25,16 +25,24 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log('🚀 [LOGIN] Formulário enviado')
     setLoading(true)
     setError('')
 
     try {
+      console.log('🔐 [LOGIN] Chamando signIn com:', { email: credentials.email, password: '***' })
       await signIn(credentials)
+      console.log('✅ [LOGIN] signIn retornou com sucesso!')
+      console.log('🎯 [LOGIN] Tentando navegar para /dashboard...')
       navigate('/dashboard')
+      console.log('✅ [LOGIN] Navigate executado!')
     } catch (err) {
+      console.error('❌ [LOGIN] Erro capturado:', err)
       setError(err instanceof Error ? err.message : 'Email ou senha inválidos')
     } finally {
+      console.log('🔄 [LOGIN] Desativando loading...')
       setLoading(false)
+      console.log('✅ [LOGIN] Loading desativado!')
     }
   }
 

@@ -29,7 +29,6 @@ export interface RegisterData {
 
 export interface AuthContextType {
   user: User | null;
-  loading: boolean;
   signIn: (credentials: LoginCredentials) => Promise<void>;
   signUp: (data: RegisterData) => Promise<void>;
   signOut: () => Promise<void>;
