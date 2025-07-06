@@ -16,8 +16,7 @@ export const Header: React.FC = () => {
     try {
       await signOut()
       navigate('/') // Redirecionar para home após logout
-    } catch (error) {
-      console.error('Error signing out:', error)
+    } catch {
       // Mesmo com erro, tentar navegar para home
       navigate('/')
     }

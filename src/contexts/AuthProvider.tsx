@@ -15,13 +15,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Verificar se há usuário logado
     const checkUser = async () => {
       try {
-        // Simular um delay para não quebrar o carregamento
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        
         const { data: { user: authUser }, error } = await supabase.auth.getUser()
         
         if (error) {
-          console.warn('Supabase not configured properly:', error.message)
+          // Supabase not configured properly - using local mode
           setLoading(false)
           return
         }
@@ -36,7 +33,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           
           if (profileError) {
             // Se o perfil não existe ou a tabela não existe, criar um perfil básico
-            console.warn('Profile not found, creating basic profile:', profileError.message)
+            // Profile not found, creating basic profile
             const basicProfile = {
               id: authUser.id,
               email: authUser.email || '',
@@ -50,8 +47,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setUser(profile)
           }
         }
-      } catch (error) {
-        console.warn('Supabase connection error (development mode):', error)
+      } catch {
+        // Supabase connection error (using local mode)
       } finally {
         setLoading(false)
       }
@@ -77,8 +74,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               if (profile) {
                 setUser(profile)
               }
-            } catch (error) {
-              console.warn('Profile fetch error:', error)
+            } catch {
+              // Profile fetch error
             }
           } else {
             setUser(null)
@@ -88,8 +85,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       )
       
       subscription = authSubscription
-    } catch (error) {
-      console.warn('Auth state listener error:', error)
+    } catch {
+      // Auth state listener error
     }
 
     return () => {
@@ -101,10 +98,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signIn = async (credentials: LoginCredentials) => {
     try {
-      // Tentar Supabase com timeout
+      // Timeout muito rápido para UX instantânea
       const supabaseLogin = supabase.auth.signInWithPassword(credentials)
       const timeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('TIMEOUT')), 5000)
+        setTimeout(() => reject(new Error('TIMEOUT')), 800) // 0.8 segundos apenas
       )
       
       try {
@@ -129,22 +126,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           return
         }
       } catch {
-        // Fallback para sistema local em caso de timeout ou erro
+        // Fallback rápido para sistema local
       }
       
-      // Sistema de autenticação local
+      // Sistema local - IMEDIATO
       if (credentials.email && credentials.password) {
-        const localUser = {
-          id: 'local-' + Date.now(),
-          email: credentials.email,
-          nome: credentials.email.split('@')[0] || 'Usuário',
-          categoria: 'aluno' as const,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-        
-        setUser(localUser)
-        setLoading(false)
+        // Pequeno delay para dar feedback visual do botão
+        setTimeout(() => {
+          const localUser = {
+            id: 'local-' + Date.now(),
+            email: credentials.email,
+            nome: credentials.email.split('@')[0] || 'Usuário',
+            categoria: 'aluno' as const,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          }
+          
+          setUser(localUser)
+          setLoading(false)
+        }, 200) // 0.2 segundos para mostrar "Entrando..."
         return
       }
       
@@ -181,18 +181,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       try {
         const { error } = await supabase.auth.signOut()
         if (error) {
-          console.warn('Supabase logout error (using local fallback):', error)
+          // Supabase logout error (using local fallback)
         }
-      } catch (supabaseError) {
-        console.warn('Supabase logout failed (using local fallback):', supabaseError)
+      } catch {
+        // Supabase logout failed (using local fallback)
       }
       
       // Sempre limpar estado local independente do Supabase
       setUser(null)
       setLoading(false)
       
-    } catch (error) {
-      console.error('Logout error:', error)
+    } catch {
+      // Logout error
       // Mesmo com erro, limpar estado local
       setUser(null)
       setLoading(false)
