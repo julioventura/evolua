@@ -18,7 +18,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const { data: { user: authUser }, error } = await supabase.auth.getUser()
         
         if (error) {
-          // Supabase not configured properly - using local mode
           setLoading(false)
           return
         }
@@ -32,7 +31,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             .single()
           
           if (profileError) {
-            // Se o perfil não existe ou a tabela não existe, criar um perfil básico
             // Profile not found, creating basic profile
             const basicProfile = {
               id: authUser.id,
@@ -48,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       } catch {
-        // Supabase connection error (using local mode)
+        // Supabase connection error
       } finally {
         setLoading(false)
       }
@@ -97,62 +95,38 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [])
 
   const signIn = async (credentials: LoginCredentials) => {
+    // Verificar se Supabase está configurado
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+    
+    if (!supabaseUrl || supabaseUrl.includes('localhost') || !supabaseKey || supabaseKey.includes('temporary')) {
+      throw new Error('Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env')
+    }
+    
     try {
-      // Timeout muito rápido para UX instantânea
-      const supabaseLogin = supabase.auth.signInWithPassword(credentials)
-      const timeout = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('TIMEOUT')), 800) // 0.8 segundos apenas
-      )
+      const { data, error } = await supabase.auth.signInWithPassword(credentials)
       
-      try {
-        const result = await Promise.race([supabaseLogin, timeout])
-        const { data, error } = result as Awaited<typeof supabaseLogin>
-        
-        if (error) {
-          throw error
-        }
-        
-        if (data?.user) {
-          const basicProfile = {
-            id: data.user.id,
-            email: data.user.email || '',
-            nome: data.user.user_metadata?.nome || data.user.email?.split('@')[0] || 'Usuário',
-            categoria: data.user.user_metadata?.categoria || 'aluno',
-            created_at: data.user.created_at || new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-          setUser(basicProfile)
-          setLoading(false)
-          return
-        }
-      } catch {
-        // Fallback rápido para sistema local
+      if (error) {
+        throw error
       }
       
-      // Sistema local - IMEDIATO
-      if (credentials.email && credentials.password) {
-        // Pequeno delay para dar feedback visual do botão
-        setTimeout(() => {
-          const localUser = {
-            id: 'local-' + Date.now(),
-            email: credentials.email,
-            nome: credentials.email.split('@')[0] || 'Usuário',
-            categoria: 'aluno' as const,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-          
-          setUser(localUser)
-          setLoading(false)
-        }, 200) // 0.2 segundos para mostrar "Entrando..."
+      if (data?.user) {
+        const basicProfile = {
+          id: data.user.id,
+          email: data.user.email || '',
+          nome: data.user.user_metadata?.nome || data.user.email?.split('@')[0] || 'Usuário',
+          categoria: data.user.user_metadata?.categoria || 'aluno',
+          created_at: data.user.created_at || new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+        setUser(basicProfile)
         return
       }
       
-      throw new Error('Credenciais inválidas')
+      throw new Error('Erro no login - sem dados de usuário')
       
-    } catch {
-      setLoading(false)
-      throw new Error('Erro ao fazer login. Verifique as credenciais.')
+    } catch (error: unknown) {
+      throw new Error(error instanceof Error ? error.message : 'Erro ao fazer login. Verifique as credenciais.')
     }
   }
 
@@ -177,25 +151,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signOut = async () => {
     try {
-      // Tentar logout do Supabase se estiver conectado
-      try {
-        const { error } = await supabase.auth.signOut()
-        if (error) {
-          // Supabase logout error (using local fallback)
-        }
-      } catch {
-        // Supabase logout failed (using local fallback)
-      }
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
       
-      // Sempre limpar estado local independente do Supabase
       setUser(null)
-      setLoading(false)
-      
-    } catch {
-      // Logout error
+    } catch (error) {
+      console.error('Logout error:', error)
       // Mesmo com erro, limpar estado local
       setUser(null)
-      setLoading(false)
     }
   }
 

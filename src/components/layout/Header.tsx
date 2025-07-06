@@ -64,7 +64,7 @@ export const Header: React.FC = () => {
                 </Link>
                 <Link
                   to="/register"
-                  className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700"
+                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Cadastro
                 </Link>
