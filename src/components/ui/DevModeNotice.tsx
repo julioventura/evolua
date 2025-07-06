@@ -16,10 +16,10 @@ export const DevModeNotice: React.FC<DevModeNoticeProps> = ({ onDismiss }) => {
           </div>
           <div className="ml-3">
             <p className="text-sm text-yellow-800">
-              <strong>Modo de Desenvolvimento:</strong> Para funcionalidades completas, configure o Supabase. 
-              <a href="/SETUP_SUPABASE.md" className="underline hover:text-yellow-900 ml-1">
+              <strong>Modo de Desenvolvimento:</strong> Instável. Use apenas para testes. 
+              {/* <a href="/SETUP_SUPABASE.md" className="underline hover:text-yellow-900 ml-1">
                 Ver instruções
-              </a>
+              </a> */}
             </p>
           </div>
         </div>

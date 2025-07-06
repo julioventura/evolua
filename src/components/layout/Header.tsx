@@ -1,9 +1,10 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 
 export const Header: React.FC = () => {
   const authContext = useAuth()
+  const navigate = useNavigate()
   
   if (!authContext) {
     return null // or loading state
@@ -14,8 +15,11 @@ export const Header: React.FC = () => {
   const handleSignOut = async () => {
     try {
       await signOut()
+      navigate('/') // Redirecionar para home após logout
     } catch (error) {
       console.error('Error signing out:', error)
+      // Mesmo com erro, tentar navegar para home
+      navigate('/')
     }
   }
 
