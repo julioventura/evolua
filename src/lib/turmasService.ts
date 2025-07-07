@@ -336,3 +336,212 @@ export async function regenerarCodigoConvite(turmaId: string): Promise<string> {
   
   return data.codigo_convite;
 }
+
+/**
+ * Verifica se um usuário existe no sistema pelo email
+ */
+export async function verificarUsuarioExiste(email: string): Promise<{ exists: boolean; user?: { id: string; email: string; full_name: string; papel: string; whatsapp?: string; nascimento?: string; cidade?: string; estado?: string } }> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('email', email.toLowerCase())
+    .single();
+    
+  if (error && error.code !== 'PGRST116') {
+    throw new Error(`Erro ao verificar usuário: ${error.message}`);
+  }
+  
+  return {
+    exists: !!data,
+    user: data || null
+  };
+}
+
+/**
+ * Cadastra um novo usuário no sistema via Admin API
+ */
+export async function cadastrarNovoUsuario(
+  email: string, 
+  papel: TurmaMembro['papel'] = 'aluno',
+  nomeCompleto?: string,
+  whatsapp?: string,
+  nascimento?: string,
+  cidade?: string,
+  estado?: string
+): Promise<{ user: { id: string; email: string }; profile: { id: string; email: string; full_name: string; papel: string; whatsapp?: string; nascimento?: string; cidade?: string; estado?: string } }> {
+  // Gerar uma senha temporária
+  const senhaTemporaria = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+  
+  // Criar usuário no Auth
+  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+    email: email.toLowerCase(),
+    password: senhaTemporaria,
+    email_confirm: true, // Confirmar email automaticamente
+    user_metadata: {
+      full_name: nomeCompleto || email.split('@')[0],
+      papel: papel
+    }
+  });
+
+  if (authError) {
+    throw new Error(`Erro ao criar usuário: ${authError.message}`);
+  }
+
+  // Aguardar um pouco para o trigger do profile ser executado
+  await new Promise(resolve => setTimeout(resolve, 1000));
+
+  // Buscar ou criar o profile
+  let profile: { id: string; email: string; full_name: string; papel: string; whatsapp?: string; nascimento?: string; cidade?: string; estado?: string } | null = null;
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', authData.user.id)
+    .single();
+
+  profile = profileData;
+
+  // Se o profile não foi criado automaticamente, criar manualmente
+  if (profileError && profileError.code === 'PGRST116') {
+    const { data: newProfile, error: createError } = await supabase
+      .from('profiles')
+      .insert({
+        id: authData.user.id,
+        email: email.toLowerCase(),
+        full_name: nomeCompleto || email.split('@')[0],
+        papel: papel,
+        whatsapp: whatsapp || null,
+        nascimento: nascimento || null,
+        cidade: cidade || null,
+        estado: estado || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select('*')
+      .single();
+
+    if (createError) {
+      throw new Error(`Erro ao criar profile: ${createError.message}`);
+    }
+    
+    profile = newProfile;
+  } else if (profileError) {
+    throw new Error(`Erro ao buscar profile: ${profileError.message}`);
+  }
+
+  // Atualizar o papel no profile se necessário
+  if (profile && profile.papel !== papel) {
+    const { data: updatedProfile, error: updateError } = await supabase
+      .from('profiles')
+      .update({ 
+        papel,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', authData.user.id)
+      .select('*')
+      .single();
+
+    if (updateError) {
+      throw new Error(`Erro ao atualizar papel: ${updateError.message}`);
+    }
+    
+    profile = updatedProfile;
+  }
+
+  return {
+    user: {
+      id: authData.user.id,
+      email: authData.user.email!
+    },
+    profile: profile!
+  };
+}
+
+/**
+ * Adiciona um membro à turma por email (verifica se existe, se não, oferece criação)
+ */
+export async function adicionarMembroPorEmail(
+  turmaId: string,
+  email: string,
+  papel: TurmaMembro['papel'] = 'aluno'
+): Promise<{ 
+  success: boolean; 
+  membro?: TurmaMembro; 
+  needsRegistration?: boolean; 
+  message?: string 
+}> {
+  try {
+    // Verificar se o usuário existe
+    const { exists, user } = await verificarUsuarioExiste(email);
+    
+    if (!exists || !user) {
+      return {
+        success: false,
+        needsRegistration: true,
+        message: `O usuário ${email} não está cadastrado no sistema.`
+      };
+    }
+
+    // Verificar se já é membro da turma
+    const membroExistente = await isMembro(turmaId, user.id);
+    if (membroExistente) {
+      return {
+        success: false,
+        message: 'Usuário já é membro desta turma.'
+      };
+    }
+
+    // Adicionar à turma
+    const membro = await addMembroTurma(turmaId, user.id, papel);
+    
+    return {
+      success: true,
+      membro,
+      message: 'Membro adicionado com sucesso!'
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Erro desconhecido'
+    };
+  }
+}
+
+/**
+ * Cadastra um novo usuário e adiciona à turma
+ */
+export async function cadastrarEAdicionarMembro(
+  turmaId: string,
+  email: string,
+  papel: TurmaMembro['papel'] = 'aluno',
+  nomeCompleto?: string,
+  whatsapp?: string,
+  nascimento?: string,
+  cidade?: string,
+  estado?: string
+): Promise<{ 
+  success: boolean; 
+  membro?: TurmaMembro; 
+  senhaTemporaria?: string;
+  message?: string 
+}> {
+  try {
+    // Cadastrar o usuário
+    const { user } = await cadastrarNovoUsuario(email, papel, nomeCompleto, whatsapp, nascimento, cidade, estado);
+    
+    // Adicionar à turma
+    const membro = await addMembroTurma(turmaId, user.id, papel);
+    
+    return {
+      success: true,
+      membro,
+      message: `Usuário ${email} foi cadastrado e adicionado à turma com sucesso!`
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Erro ao cadastrar usuário'
+    };
+  }
+}

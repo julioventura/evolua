@@ -98,7 +98,10 @@ export function TurmasPage() {
   // ============================================================================
 
   const TurmaCard = ({ turma, isMinhaTurma }: { turma: Turma; isMinhaTurma: boolean }) => (
-    <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow">
+    <Link 
+      to={`/turmas/${turma.id}`}
+      className="block bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer"
+    >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div>
@@ -163,7 +166,11 @@ export function TurmasPage() {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => navigator.clipboard.writeText(turma.codigo_convite)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                navigator.clipboard.writeText(turma.codigo_convite);
+              }}
             >
               Copiar
             </Button>
@@ -171,35 +178,33 @@ export function TurmasPage() {
         </div>
       )}
 
-      {/* Ações */}
-      <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-        <Link 
-          to={`/turmas/${turma.id}`}
-          className="text-primary-600 hover:text-primary-700 font-medium text-sm"
-        >
-          Ver detalhes →
-        </Link>
-        
-        {isMinhaTurma && (
-          <div className="flex items-center space-x-2">
-            <Link to={`/turmas/${turma.id}/editar`}>
-              <Button size="sm" variant="outline">
-                Editar
-              </Button>
-            </Link>
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => handleExcluir(turma)}
-              disabled={loadingAction === turma.id}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {loadingAction === turma.id ? <LoadingSpinner size="sm" /> : 'Excluir'}
+      {/* Ações (apenas para minhas turmas) */}
+      {isMinhaTurma && (
+        <div className="flex items-center justify-end pt-4 border-t border-gray-200 space-x-2">
+          <Link 
+            to={`/turmas/${turma.id}/editar`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Button size="sm" variant="outline">
+              Editar
             </Button>
-          </div>
-        )}
-      </div>
-    </div>
+          </Link>
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleExcluir(turma);
+            }}
+            disabled={loadingAction === turma.id}
+            className="bg-red-600 hover:bg-red-700 text-white"
+          >
+            {loadingAction === turma.id ? <LoadingSpinner size="sm" /> : 'Excluir'}
+          </Button>
+        </div>
+      )}
+    </Link>
   );
 
   // ============================================================================
@@ -301,7 +306,7 @@ export function TurmasPage() {
             </h2>
             
             {minhasTurmas.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
                 {minhasTurmas.map(turma => (
                   <TurmaCard 
                     key={turma.id} 
@@ -333,7 +338,7 @@ export function TurmasPage() {
               Como Aluno ({turmasAluno.length})
             </h2>
             
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="space-y-4">
               {turmasAluno.map(turma => (
                 <TurmaCard 
                   key={turma.id} 

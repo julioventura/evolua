@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { MembrosManager } from '../components/features/MembrosManager';
+import { adicionarMembroPorEmail, cadastrarEAdicionarMembro } from '../lib/turmasService';
 import type { TurmaMembro } from '../types';
 
 export function TurmaDetailsPage() {
@@ -118,6 +119,69 @@ export function TurmaDetailsPage() {
   };
 
   // ============================================================================
+  // HANDLERS DE MEMBROS
+  // ============================================================================
+
+  const handleAdicionarMembroPorEmail = async (email: string, papel: TurmaMembro['papel']) => {
+    if (!turmaAtual) return;
+    
+    const result = await adicionarMembroPorEmail(turmaAtual.id, email, papel);
+    
+    if (result.success) {
+      // Recarregar a turma para atualizar a lista de membros
+      await loadTurma(turmaAtual.id);
+      return;
+    }
+    
+    if (result.needsRegistration) {
+      // Lançar erro específico para que o componente possa capturar
+      const error = new Error(result.message || 'Usuário não encontrado');
+      (error as { needsRegistration?: boolean }).needsRegistration = true;
+      throw error;
+    }
+    
+    // Outros erros
+    throw new Error(result.message || 'Erro ao adicionar membro');
+  };
+
+  const handleCadastrarEAdicionarMembro = async (
+    email: string, 
+    papel: TurmaMembro['papel'], 
+    dadosCompletos: {
+      nomeCompleto?: string;
+      whatsapp?: string;
+      nascimento?: string;
+      cidade?: string;
+      estado?: string;
+    }
+  ) => {
+    if (!turmaAtual) return;
+    
+    const result = await cadastrarEAdicionarMembro(
+      turmaAtual.id, 
+      email, 
+      papel, 
+      dadosCompletos.nomeCompleto,
+      dadosCompletos.whatsapp,
+      dadosCompletos.nascimento,
+      dadosCompletos.cidade,
+      dadosCompletos.estado
+    );
+    
+    if (result.success) {
+      // Recarregar a turma para atualizar a lista de membros
+      await loadTurma(turmaAtual.id);
+      
+      // Mostrar mensagem de sucesso
+      alert(result.message || 'Usuário cadastrado e adicionado com sucesso!');
+      return;
+    }
+    
+    // Erro no cadastro
+    throw new Error(result.message || 'Erro ao cadastrar usuário');
+  };
+
+  // ============================================================================
   // RENDER
   // ============================================================================
 
@@ -135,10 +199,10 @@ export function TurmaDetailsPage() {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center py-16">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
             Turma não encontrada
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-gray-600 dark:text-gray-300 mb-4">
             A turma que você está procurando não existe ou foi removida.
           </p>
           <Link to="/turmas">
@@ -158,10 +222,10 @@ export function TurmaDetailsPage() {
       <div className="mb-8">
         <div className="flex items-start justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
               {turmaAtual.nome}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 dark:text-gray-300">
               {turmaAtual.descricao || 'Sem descrição'}
             </p>
           </div>
@@ -180,28 +244,28 @@ export function TurmaDetailsPage() {
 
         {/* Informações rápidas */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-blue-800">Alunos</h3>
-            <p className="text-2xl font-bold text-blue-900">
+          <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+            <h3 className="text-sm font-medium text-blue-900 dark:text-blue-300">Alunos</h3>
+            <p className="text-2xl font-bold text-blue-900 dark:text-blue-100">
               {alunosAtivos.length}/{turmaAtual.max_alunos}
             </p>
           </div>
           
-          <div className="bg-green-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-green-800">Monitores</h3>
-            <p className="text-2xl font-bold text-green-900">{monitores.length}</p>
+          <div className="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-800">
+            <h3 className="text-sm font-medium text-green-900 dark:text-green-300">Monitores</h3>
+            <p className="text-2xl font-bold text-green-900 dark:text-green-100">{monitores.length}</p>
           </div>
           
-          <div className="bg-purple-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-purple-800">Atividades</h3>
-            <p className="text-2xl font-bold text-purple-900">
+          <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-200 dark:border-purple-800">
+            <h3 className="text-sm font-medium text-purple-900 dark:text-purple-300">Atividades</h3>
+            <p className="text-2xl font-bold text-purple-900 dark:text-purple-100">
               {turmaAtual.total_atividades || 0}
             </p>
           </div>
           
-          <div className="bg-orange-50 p-4 rounded-lg">
-            <h3 className="text-sm font-medium text-orange-800">Período</h3>
-            <p className="text-lg font-bold text-orange-900">
+          <div className="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-200 dark:border-orange-800">
+            <h3 className="text-sm font-medium text-orange-900 dark:text-orange-300">Período</h3>
+            <p className="text-lg font-bold text-orange-900 dark:text-orange-100">
               {turmaAtual.periodo || `${turmaAtual.ano}.${turmaAtual.semestre}`}
             </p>
           </div>
@@ -322,11 +386,8 @@ export function TurmaDetailsPage() {
             membros={membros}
             isProfessor={isProfessor}
             isMonitor={isMonitor}
-            onAdicionarMembro={async (email: string, papel: TurmaMembro['papel']) => {
-              // Implementar adição por email quando tivermos esse serviço
-              console.log('Adicionar membro:', email, papel);
-              alert('Funcionalidade de adicionar por email será implementada em breve');
-            }}
+            onAdicionarMembro={handleAdicionarMembroPorEmail}
+            onCadastrarEAdicionarMembro={handleCadastrarEAdicionarMembro}
             onRemoverMembro={async (userId: string) => {
               const membro = membros.find(m => m.user_id === userId);
               if (membro) {

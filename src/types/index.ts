@@ -327,3 +327,39 @@ export interface TurmaContextType {
   removeMembro: (turmaId: string, userId: string) => Promise<void>;
   updateMembroPapel: (turmaId: string, userId: string, papel: TurmaMembro['papel']) => Promise<void>;
 }
+
+// ============================================================================
+// TIPOS DE PERFIL DE USUÁRIO
+// ============================================================================
+
+export interface Profile {
+  id: string;
+  email: string;
+  full_name: string;
+  papel: 'aluno' | 'professor' | 'monitor' | 'admin';
+  whatsapp?: string;
+  nascimento?: string;
+  cidade?: string;
+  estado?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateProfileData {
+  email: string;
+  full_name: string;
+  papel: Profile['papel'];
+  whatsapp?: string;
+  nascimento?: string;
+  cidade?: string;
+  estado?: string;
+}
+
+export interface UpdateProfileData {
+  full_name?: string;
+  papel?: Profile['papel'];
+  whatsapp?: string;
+  nascimento?: string;
+  cidade?: string;
+  estado?: string;
+}

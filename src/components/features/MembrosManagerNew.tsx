@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { ConfirmCadastroModal } from './ConfirmCadastroModal';
 import type { TurmaMembro, Turma } from '../../types';
 
 interface MembrosManagerProps {
@@ -15,13 +14,6 @@ interface MembrosManagerProps {
   isProfessor: boolean;
   isMonitor: boolean;
   onAdicionarMembro: (email: string, papel: TurmaMembro['papel']) => Promise<void>;
-  onCadastrarEAdicionarMembro: (email: string, papel: TurmaMembro['papel'], dadosCompletos: {
-    nomeCompleto?: string;
-    whatsapp?: string;
-    nascimento?: string;
-    cidade?: string;
-    estado?: string;
-  }) => Promise<void>;
   onRemoverMembro: (userId: string) => Promise<void>;
   onAtualizarPapel: (userId: string, novoPapel: TurmaMembro['papel']) => Promise<void>;
   onGerarNovoConvite: () => Promise<void>;
@@ -34,7 +26,6 @@ export function MembrosManager({
   isProfessor,
   isMonitor,
   onAdicionarMembro,
-  onCadastrarEAdicionarMembro,
   onRemoverMembro,
   onAtualizarPapel,
   onGerarNovoConvite,
@@ -44,11 +35,6 @@ export function MembrosManager({
   const [novoMembroPapel, setNovoMembroPapel] = useState<TurmaMembro['papel']>('aluno');
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [pendingRegistration, setPendingRegistration] = useState<{
-    email: string;
-    papel: TurmaMembro['papel'];
-  } | null>(null);
 
   const canManage = isProfessor || isMonitor;
 
@@ -63,69 +49,14 @@ export function MembrosManager({
 
     try {
       setLoadingAction('adding');
-      
-      // Tentar adicionar o membro existente
       await onAdicionarMembro(novoMembroEmail.trim(), novoMembroPapel);
-      
-      // Se chegou aqui, o membro foi adicionado com sucesso
       setNovoMembroEmail('');
       setShowAddForm(false);
-      
-    } catch (error: unknown) {
-      // Verificar se o erro indica que o usuário não existe
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      const needsRegistration = (error as { needsRegistration?: boolean })?.needsRegistration || errorMessage.includes('não está cadastrado');
-      
-      if (needsRegistration) {
-        // Mostrar modal de confirmação de cadastro
-        setPendingRegistration({
-          email: novoMembroEmail.trim(),
-          papel: novoMembroPapel
-        });
-        setShowConfirmModal(true);
-      } else {
-        console.error('Erro ao adicionar membro:', error);
-        alert(errorMessage || 'Erro ao adicionar membro');
-      }
+    } catch (error) {
+      console.error('Erro ao adicionar membro:', error);
     } finally {
       setLoadingAction(null);
     }
-  };
-
-  const handleConfirmCadastro = async (
-    email: string, 
-    papel: TurmaMembro['papel'], 
-    dadosCompletos: {
-      nomeCompleto?: string;
-      whatsapp?: string;
-      nascimento?: string;
-      cidade?: string;
-      estado?: string;
-    }
-  ) => {
-    try {
-      setLoadingAction('registering');
-      
-      await onCadastrarEAdicionarMembro(email, papel, dadosCompletos);
-      
-      // Sucesso
-      setNovoMembroEmail('');
-      setShowAddForm(false);
-      setShowConfirmModal(false);
-      setPendingRegistration(null);
-      
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      console.error('Erro ao cadastrar membro:', error);
-      alert(errorMessage || 'Erro ao cadastrar membro');
-    } finally {
-      setLoadingAction(null);
-    }
-  };
-
-  const handleCancelCadastro = () => {
-    setShowConfirmModal(false);
-    setPendingRegistration(null);
   };
 
   const handleRemoverMembro = async (userId: string) => {
@@ -235,6 +166,58 @@ export function MembrosManager({
           </div>
         )}
       </div>
+
+      {/* Código de convite melhorado */}
+      {turma.codigo_convite && (
+        <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 
+                       border-2 border-blue-200 dark:border-blue-700 rounded-2xl p-6 shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="w-14 h-14 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl 
+                              flex items-center justify-center shadow-lg">
+                  <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h4 className="font-bold text-blue-900 dark:text-blue-100 text-xl">
+                    🎫 Código de Convite
+                  </h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
+                    Compartilhe este código para que alunos ingressem na turma
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="text-right ml-6">
+              <div className="bg-white dark:bg-gray-800 border-3 border-blue-400 dark:border-blue-500 
+                            rounded-2xl px-8 py-5 shadow-xl transform hover:scale-105 transition-transform">
+                <code className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 
+                               tracking-wider font-mono block">
+                  {turma.codigo_convite}
+                </code>
+              </div>
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(turma.codigo_convite);
+                  alert('📋 Código copiado para a área de transferência!');
+                }}
+                className="mt-4 inline-flex items-center gap-2 px-6 py-3 text-sm font-bold 
+                         text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700
+                         rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
+                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+                Copiar Código
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Formulário para adicionar membro */}
       {showAddForm && canManage && (
@@ -577,71 +560,7 @@ export function MembrosManager({
             )}
           </div>
         </div>
-
-        {/* Código de convite melhorado - MOVIDO PARA O FINAL */}
-        {turma.codigo_convite && (
-          <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-blue-900/20 dark:via-indigo-900/20 dark:to-purple-900/20 
-                         border-2 border-blue-200 dark:border-blue-700 rounded-2xl p-6 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center gap-4 mb-3">
-                  <div className="w-14 h-14 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl 
-                                flex items-center justify-center shadow-lg">
-                    <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-blue-900 dark:text-blue-100 text-xl">
-                      🎫 Código de Convite
-                    </h4>
-                    <p className="text-sm text-blue-700 dark:text-blue-300 font-medium">
-                      Compartilhe este código para que alunos ingressem na turma
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <div className="text-right ml-6">
-                <div className="bg-white dark:bg-gray-800 border-3 border-blue-400 dark:border-blue-500 
-                              rounded-2xl px-8 py-5 shadow-xl transform hover:scale-105 transition-transform">
-                  <code className="text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600 
-                                 tracking-wider font-mono block">
-                    {turma.codigo_convite}
-                  </code>
-                </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(turma.codigo_convite);
-                    alert('📋 Código copiado para a área de transferência!');
-                  }}
-                  className="mt-4 inline-flex items-center gap-2 px-6 py-3 text-sm font-bold 
-                           text-white bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700
-                           rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} 
-                          d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  Copiar Código
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-
-      {/* Modal de confirmação de cadastro */}
-      {pendingRegistration && (
-        <ConfirmCadastroModal
-          isOpen={showConfirmModal}
-          email={pendingRegistration.email}
-          papel={pendingRegistration.papel}
-          onConfirm={handleConfirmCadastro}
-          onCancel={handleCancelCadastro}
-          loading={loadingAction === 'registering'}
-        />
-      )}
     </div>
   );
 }
