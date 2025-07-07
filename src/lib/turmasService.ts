@@ -16,44 +16,22 @@ import type {
 // ============================================================================
 
 /**
- * Busca turmas do usuário atual (como professor ou membro)
+ * Busca turmas do usuário atual (como professor ou membro) - VERSÃO SIMPLIFICADA
  */
 export async function getTurmas(filtros?: FiltrosTurma): Promise<Turma[]> {
+  // Primeiro, vamos tentar uma consulta mais simples
   let query = supabase
     .from('turmas')
-    .select(`
-      *,
-      professor:profiles!turmas_professor_id_fkey(id, nome, email, categoria),
-      membros:turma_membros(
-        id, papel, status, data_entrada,
-        user:profiles(id, nome, email, categoria)
-      )
-    `)
+    .select('*')
     .order('created_at', { ascending: false });
 
-  // Aplicar filtros
+  // Aplicar filtros básicos
   if (filtros?.ativa !== undefined) {
     query = query.eq('ativa', filtros.ativa);
   }
   
   if (filtros?.professor_id) {
     query = query.eq('professor_id', filtros.professor_id);
-  }
-  
-  if (filtros?.instituicao) {
-    query = query.ilike('instituicao', `%${filtros.instituicao}%`);
-  }
-  
-  if (filtros?.periodo) {
-    query = query.eq('periodo', filtros.periodo);
-  }
-  
-  if (filtros?.ano) {
-    query = query.eq('ano', filtros.ano);
-  }
-  
-  if (filtros?.search) {
-    query = query.or(`nome.ilike.%${filtros.search}%,descricao.ilike.%${filtros.search}%`);
   }
 
   const { data, error } = await query;
@@ -66,19 +44,12 @@ export async function getTurmas(filtros?: FiltrosTurma): Promise<Turma[]> {
 }
 
 /**
- * Busca uma turma específica por ID
+ * Busca uma turma específica por ID - VERSÃO SIMPLIFICADA
  */
 export async function getTurma(id: string): Promise<Turma | null> {
   const { data, error } = await supabase
     .from('turmas')
-    .select(`
-      *,
-      professor:profiles!turmas_professor_id_fkey(id, nome, email, categoria),
-      membros:turma_membros(
-        id, papel, status, data_entrada,
-        user:profiles(id, nome, email, categoria)
-      )
-    `)
+    .select('*')
     .eq('id', id)
     .single();
     
@@ -93,15 +64,12 @@ export async function getTurma(id: string): Promise<Turma | null> {
 }
 
 /**
- * Busca turma por código de convite
+ * Busca turma por código de convite - VERSÃO SIMPLIFICADA
  */
 export async function getTurmaPorCodigo(codigo: string): Promise<Turma | null> {
   const { data, error } = await supabase
     .from('turmas')
-    .select(`
-      *,
-      professor:profiles!turmas_professor_id_fkey(id, nome, email, categoria)
-    `)
+    .select('*')
     .eq('codigo_convite', codigo.toUpperCase())
     .eq('ativa', true)
     .single();
@@ -143,10 +111,7 @@ export async function createTurma(data: CreateTurmaData): Promise<Turma> {
   const { data: turma, error } = await supabase
     .from('turmas')
     .insert(turmaData)
-    .select(`
-      *,
-      professor:profiles!turmas_professor_id_fkey(id, nome, email, categoria)
-    `)
+    .select('*')
     .single();
     
   if (error) {
@@ -167,10 +132,7 @@ export async function updateTurma(id: string, data: UpdateTurmaData): Promise<Tu
     .from('turmas')
     .update(data)
     .eq('id', id)
-    .select(`
-      *,
-      professor:profiles!turmas_professor_id_fkey(id, nome, email, categoria)
-    `)
+    .select('*')
     .single();
     
   if (error) {
@@ -199,15 +161,12 @@ export async function deleteTurma(id: string): Promise<void> {
 // ============================================================================
 
 /**
- * Busca membros de uma turma
+ * Busca membros de uma turma - VERSÃO SIMPLIFICADA
  */
 export async function getMembros(turmaId: string): Promise<TurmaMembro[]> {
   const { data, error } = await supabase
     .from('turma_membros')
-    .select(`
-      *,
-      user:profiles(id, nome, email, categoria, avatar_url)
-    `)
+    .select('*')
     .eq('turma_id', turmaId)
     .eq('status', 'ativo')
     .order('papel', { ascending: false }) // professores primeiro
@@ -236,10 +195,7 @@ export async function addMembroTurma(
       papel,
       status: 'ativo'
     })
-    .select(`
-      *,
-      user:profiles(id, nome, email, categoria, avatar_url)
-    `)
+    .select('*')
     .single();
     
   if (error) {
@@ -311,10 +267,7 @@ export async function updateMembroPapel(
     .update({ papel })
     .eq('turma_id', turmaId)
     .eq('user_id', userId)
-    .select(`
-      *,
-      user:profiles(id, nome, email, categoria, avatar_url)
-    `)
+    .select('*')
     .single();
     
   if (error) {
