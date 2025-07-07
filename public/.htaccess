@@ -1,0 +1,35 @@
+RewriteEngine On
+
+# Handle Angular/React/Vue Router
+RewriteBase /evolua/
+
+# Redirecionar todas as rotas não encontradas para index.html
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /evolua/index.html [L]
+
+# Cache estático para assets
+<IfModule mod_expires.c>
+    ExpiresActive on
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# Segurança básica
+<Files ~ "^\.">
+    Order allow,deny
+    Deny from all
+</Files>
+
+# Prevenir acesso direto a arquivos sensíveis
+<FilesMatch "\.(env|log|ini)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>

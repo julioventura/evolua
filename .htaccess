@@ -1,0 +1,14 @@
+RewriteOptions inherit
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301,QSA]
+
+# Coloque este .htaccess dentro da pasta /evolua
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /evolua/
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /evolua/index.html [L]
+</IfModule>

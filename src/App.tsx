@@ -26,8 +26,6 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
   return user ? <>{children}</> : <Navigate to="/login" replace />
 }
-
-// Layout principal da aplicação
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col">
@@ -43,7 +41,7 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter basename="/evolua">
         <AppLayout>
           <Routes>
             <Route path="/" element={<HomePage />} />
