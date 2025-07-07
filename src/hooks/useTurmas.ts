@@ -130,16 +130,19 @@ export function useTurmas(): UseTurmasReturn {
 
   const createTurma = useCallback(async (data: CreateTurmaData): Promise<Turma> => {
     try {
+      console.log('🎯 Hook: Iniciando criação de turma', data);
       setLoading(true);
       clearError();
       
       const novaTurma = await createTurmaService(data);
+      console.log('✅ Hook: Turma criada com sucesso', novaTurma);
       
       // Atualizar lista local
       setTurmas(prev => [novaTurma, ...prev]);
       
       return novaTurma;
     } catch (err) {
+      console.error('❌ Hook: Erro ao criar turma', err);
       handleError(err, 'Erro ao criar turma');
       throw err;
     } finally {

@@ -8,6 +8,7 @@ import { useTurmas } from '../hooks/useTurmas';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { MembrosManager } from '../components/features/MembrosManager';
 import type { TurmaMembro } from '../types';
 
 export function TurmaDetailsPage() {
@@ -45,6 +46,17 @@ export function TurmaDetailsPage() {
   const membroAtual = membros.find(m => m.user_id === user?.id);
   const isMonitor = membroAtual?.papel === 'monitor';
   const canManage = isProfessor || isMonitor;
+
+  // Debug temporário
+  console.log('🔍 Debug membros:', {
+    turmaId: turmaAtual?.id,
+    userId: user?.id,
+    isProfessor,
+    isMonitor,
+    canManage,
+    membros,
+    membroAtual
+  });
 
   // ============================================================================
   // AÇÕES
@@ -104,73 +116,6 @@ export function TurmaDetailsPage() {
       setLoadingAction(null);
     }
   };
-
-  // ============================================================================
-  // COMPONENTES AUXILIARES
-  // ============================================================================
-
-  const MembroCard = ({ membro }: { membro: TurmaMembro }) => (
-    <div className="bg-white p-4 rounded-lg border border-gray-200">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
-            <span className="text-gray-700 font-semibold">
-              {membro.user?.nome.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div>
-            <h4 className="font-medium text-gray-900">{membro.user?.nome}</h4>
-            <p className="text-sm text-gray-600">{membro.user?.email}</p>
-          </div>
-        </div>
-        
-        <div className="flex items-center space-x-3">
-          {/* Papel */}
-          {isProfessor && membro.papel !== 'professor' ? (
-            <select
-              value={membro.papel}
-              onChange={(e) => handleAlterarPapel(membro, e.target.value as TurmaMembro['papel'])}
-              disabled={loadingAction === `role-${membro.user_id}`}
-              className="text-sm border border-gray-300 rounded px-2 py-1"
-            >
-              <option value="aluno">Aluno</option>
-              <option value="monitor">Monitor</option>
-            </select>
-          ) : (
-            <span className={`
-              px-2 py-1 rounded-full text-xs font-medium
-              ${membro.papel === 'professor' 
-                ? 'bg-blue-100 text-blue-800'
-                : membro.papel === 'monitor'
-                ? 'bg-green-100 text-green-800'
-                : 'bg-gray-100 text-gray-800'
-              }
-            `}>
-              {membro.papel === 'professor' ? 'Professor' : 
-               membro.papel === 'monitor' ? 'Monitor' : 'Aluno'}
-            </span>
-          )}
-
-          {/* Ações */}
-          {isProfessor && membro.papel !== 'professor' && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleRemoverMembro(membro)}
-              disabled={loadingAction === `remove-${membro.user_id}`}
-              className="text-red-600 hover:bg-red-50"
-            >
-              {loadingAction === `remove-${membro.user_id}` ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                'Remover'
-              )}
-            </Button>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 
   // ============================================================================
   // RENDER
@@ -371,56 +316,32 @@ export function TurmaDetailsPage() {
         )}
 
         {/* Membros */}
-        {activeTab === 'membros' && (
-          <div className="space-y-6">
-            {/* Professor */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Professor</h2>
-              {membros
-                .filter(m => m.papel === 'professor')
-                .map(membro => (
-                  <MembroCard key={membro.id} membro={membro} />
-                ))
+        {activeTab === 'membros' && turmaAtual && (
+          <MembrosManager
+            turma={turmaAtual}
+            membros={membros}
+            isProfessor={isProfessor}
+            isMonitor={isMonitor}
+            onAdicionarMembro={async (email: string, papel: TurmaMembro['papel']) => {
+              // Implementar adição por email quando tivermos esse serviço
+              console.log('Adicionar membro:', email, papel);
+              alert('Funcionalidade de adicionar por email será implementada em breve');
+            }}
+            onRemoverMembro={async (userId: string) => {
+              const membro = membros.find(m => m.user_id === userId);
+              if (membro) {
+                await handleRemoverMembro(membro);
               }
-            </div>
-
-            {/* Monitores */}
-            {monitores.length > 0 && (
-              <div>
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                  Monitores ({monitores.length})
-                </h2>
-                <div className="space-y-3">
-                  {monitores.map(membro => (
-                    <MembroCard key={membro.id} membro={membro} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Alunos */}
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Alunos ({alunosAtivos.length})
-              </h2>
-              {alunosAtivos.length > 0 ? (
-                <div className="space-y-3">
-                  {alunosAtivos.map(membro => (
-                    <MembroCard key={membro.id} membro={membro} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 bg-gray-50 rounded-lg">
-                  <p className="text-gray-600">Nenhum aluno cadastrado ainda</p>
-                  {canManage && (
-                    <p className="text-sm text-gray-500 mt-2">
-                      Compartilhe o código <strong>{turmaAtual.codigo_convite}</strong> para que os alunos possam ingressar
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+            }}
+            onAtualizarPapel={async (userId: string, novoPapel: TurmaMembro['papel']) => {
+              const membro = membros.find(m => m.user_id === userId);
+              if (membro) {
+                await handleAlterarPapel(membro, novoPapel);
+              }
+            }}
+            onGerarNovoConvite={handleGerarNovoConvite}
+            loading={loading}
+          />
         )}
 
         {/* Atividades */}

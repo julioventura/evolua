@@ -84,10 +84,15 @@ export function TurmaFormPage() {
       newErrors.max_alunos = 'Número de alunos não pode exceder 500';
     }
 
-    if (formData.periodo && !/^\d{4}\.[12]$/.test(formData.periodo)) {
-      newErrors.periodo = 'Período deve estar no formato AAAA.S (ex: 2025.1)';
+    // Validação mais flexível do período
+    if (formData.periodo && formData.periodo.trim()) {
+      const periodoRegex = /^\d{4}[-.]?[12]?$/;
+      if (!periodoRegex.test(formData.periodo)) {
+        newErrors.periodo = 'Período deve estar no formato AAAA.S (ex: 2025.1, 2025-2, ou apenas 2025)';
+      }
     }
 
+    console.log('🔍 Validação do formulário:', { formData, newErrors });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -151,6 +156,8 @@ export function TurmaFormPage() {
       }
     } catch (err) {
       console.error('Erro ao salvar turma:', err);
+      // Mostrar erro para o usuário
+      alert(`Erro ao criar turma: ${err instanceof Error ? err.message : 'Erro desconhecido'}`);
     } finally {
       setSaving(false);
     }

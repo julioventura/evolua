@@ -88,11 +88,16 @@ export async function getTurmaPorCodigo(codigo: string): Promise<Turma | null> {
  * Cria uma nova turma
  */
 export async function createTurma(data: CreateTurmaData): Promise<Turma> {
+  console.log('🚀 Serviço: Iniciando criação de turma', data);
+  
   const { data: user } = await supabase.auth.getUser();
   
   if (!user.user) {
+    console.error('❌ Serviço: Usuário não autenticado');
     throw new Error('Usuário não autenticado');
   }
+
+  console.log('👤 Serviço: Usuário autenticado:', user.user.id);
 
   const turmaData = {
     ...data,
@@ -108,6 +113,8 @@ export async function createTurma(data: CreateTurmaData): Promise<Turma> {
     }
   };
 
+  console.log('📝 Serviço: Dados da turma para inserir:', turmaData);
+
   const { data: turma, error } = await supabase
     .from('turmas')
     .insert(turmaData)
@@ -115,12 +122,17 @@ export async function createTurma(data: CreateTurmaData): Promise<Turma> {
     .single();
     
   if (error) {
+    console.error('❌ Serviço: Erro ao criar turma:', error);
     throw new Error(`Erro ao criar turma: ${error.message}`);
   }
   
+  console.log('✅ Serviço: Turma criada com sucesso:', turma);
+  
   // Adicionar o professor como membro da turma
+  console.log('👨‍🏫 Serviço: Adicionando professor como membro...');
   await addMembroTurma(turma.id, user.user.id, 'professor');
   
+  console.log('🎉 Serviço: Processo completo finalizado');
   return turma;
 }
 
@@ -166,7 +178,10 @@ export async function deleteTurma(id: string): Promise<void> {
 export async function getMembros(turmaId: string): Promise<TurmaMembro[]> {
   const { data, error } = await supabase
     .from('turma_membros')
-    .select('*')
+    .select(`
+      *,
+      user:profiles(*)
+    `)
     .eq('turma_id', turmaId)
     .eq('status', 'ativo')
     .order('papel', { ascending: false }) // professores primeiro
