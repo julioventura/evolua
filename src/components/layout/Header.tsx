@@ -42,6 +42,12 @@ export const Header: React.FC = () => {
                 >
                   Dashboard
                 </Link>
+                <Link
+                  to="/turmas"
+                  className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
+                >
+                  Turmas
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="bg-primary-600 dark:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 dark:hover:bg-primary-700"

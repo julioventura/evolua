@@ -9,6 +9,9 @@ import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { TurmasPage } from './pages/TurmasPage'
+import { TurmaFormPage } from './pages/TurmaFormPage'
+import { TurmaDetailsPage } from './pages/TurmaDetailsPage'
 import { useAuth } from './contexts/AuthContext'
 
 // Componente para proteger rotas privadas
@@ -49,6 +52,8 @@ function App() {
               <Route path="/" element={<HomePage />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
+              
+              {/* Rotas protegidas */}
               <Route 
                 path="/dashboard" 
                 element={
@@ -57,6 +62,41 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+              
+              {/* Rotas de Turmas */}
+              <Route 
+                path="/turmas" 
+                element={
+                  <ProtectedRoute>
+                    <TurmasPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/turmas/nova" 
+                element={
+                  <ProtectedRoute>
+                    <TurmaFormPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/turmas/:id" 
+                element={
+                  <ProtectedRoute>
+                    <TurmaDetailsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/turmas/:id/editar" 
+                element={
+                  <ProtectedRoute>
+                    <TurmaFormPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
               {/* Rota de fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
