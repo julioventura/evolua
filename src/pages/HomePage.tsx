@@ -5,8 +5,10 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { DevModeNotice } from '../components/ui/DevModeNotice'
 
 export const HomePage: React.FC = () => {
-  const [showDevNotice, setShowDevNotice] = useState(true)
   const authContext = useAuth()
+
+  // showDevNotice - mostra o componente de aviso de desenvolvimento
+  const [showDevNotice, setShowDevNotice] = useState(false)
 
   if (!authContext) {
     return (
