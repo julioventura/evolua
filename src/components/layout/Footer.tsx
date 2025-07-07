@@ -7,14 +7,9 @@ export const Footer: React.FC = () => {
   return (
     <footer className="bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center">
           <div className="text-center text-gray-500 dark:text-gray-400 text-sm">
             <p>&copy; {currentYear} EVOLUA - Versão 1.0.0-beta<br />Avaliação de Desempenho na Prática de Alunos. FOP/UPE.</p>
           </div>
-          <div className="flex items-center">
-            <ThemeToggle />
-          </div>
-        </div>
       </div>
     </footer>
   )

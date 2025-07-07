@@ -1,4 +1,5 @@
 import React from 'react'
+import { ThemeToggle } from '../ui/ThemeToggle'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -64,6 +65,9 @@ export const Header: React.FC = () => {
                 </Link>
               </>
             )}
+            <div className="flex items-center">
+              <ThemeToggle />
+            </div>
           </nav>
         </div>
       </div>
