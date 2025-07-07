@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
+import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import type { RegisterData } from '../types'
 
 export const RegisterPage: React.FC = () => {
@@ -15,12 +16,28 @@ export const RegisterPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  const [checking, setChecking] = useState(true)
   
   const authContext = useAuth()
   const navigate = useNavigate()
   
+  // Verificar se o usuário já está logado
+  useEffect(() => {
+    if (authContext?.user) {
+      // Se o usuário já está logado, redirecionar para o dashboard
+      navigate('/dashboard', { replace: true })
+    } else {
+      // Se não está logado, mostrar a página de registro
+      setChecking(false)
+    }
+  }, [authContext?.user, navigate])
+
   if (!authContext) {
-    return <div>Loading...</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <LoadingSpinner size="lg" message="Carregando..." />
+      </div>
+    )
   }
   
   const { signUp } = authContext
@@ -43,6 +60,15 @@ export const RegisterPage: React.FC = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Mostrar spinner enquanto verifica se o usuário está logado
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <LoadingSpinner size="lg" message="Verificando autenticação..." />
+      </div>
+    )
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {

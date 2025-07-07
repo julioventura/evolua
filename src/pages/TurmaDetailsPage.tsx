@@ -333,16 +333,16 @@ export function TurmaDetailsPage() {
 
             {/* Código de Convite */}
             {canManage && (
-              <div className="bg-white p-6 rounded-lg border border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900 mb-4">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border border-gray-200 dark:border-gray-700">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
                   Código de Convite
                 </h2>
                 
-                <div className="bg-gray-50 p-4 rounded-lg mb-4">
+                <div className="bg-gray-50 dark:bg-gray-700 p-4 rounded-lg mb-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Código atual:</p>
-                      <p className="text-2xl font-mono font-bold text-primary-600">
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Código atual:</p>
+                      <p className="text-2xl font-mono font-bold text-primary-600 dark:text-primary-400">
                         {turmaAtual.codigo_convite}
                       </p>
                     </div>
@@ -356,7 +356,7 @@ export function TurmaDetailsPage() {
                   </div>
                 </div>
                 
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
                   Compartilhe este código com os alunos para que possam ingressar na turma.
                 </p>
                 

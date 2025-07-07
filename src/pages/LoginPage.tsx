@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { PasswordInput } from '../components/ui/PasswordInput'
+import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import type { LoginCredentials } from '../types'
 
 export const LoginPage: React.FC = () => {
@@ -13,9 +14,21 @@ export const LoginPage: React.FC = () => {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [checking, setChecking] = useState(true)
   
-  const { signIn } = useAuth()
+  const { signIn, user } = useAuth()
   const navigate = useNavigate()
+
+  // Verificar se o usuário já está logado
+  useEffect(() => {
+    if (user) {
+      // Se o usuário já está logado, redirecionar para o dashboard
+      navigate('/dashboard', { replace: true })
+    } else {
+      // Se não está logado, mostrar a página de login
+      setChecking(false)
+    }
+  }, [user, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,6 +51,15 @@ export const LoginPage: React.FC = () => {
       ...prev,
       [name]: value
     }))
+  }
+
+  // Mostrar spinner enquanto verifica se o usuário está logado
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <LoadingSpinner size="lg" message="Verificando autenticação..." />
+      </div>
+    )
   }
 
   return (
