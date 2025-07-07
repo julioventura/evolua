@@ -90,53 +90,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, [])
 
   const signIn = async (credentials: LoginCredentials) => {
-    console.log('🔄 [AUTH] signIn iniciado')
-    
     // Verificar se Supabase está configurado
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
     const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY
     
-    console.log('🔧 [AUTH] Verificando config:', { 
-      supabaseUrl: supabaseUrl || 'undefined',
-      hasKey: !!supabaseKey 
-    })
-    
     if (!supabaseUrl || supabaseUrl.includes('localhost') || !supabaseKey || supabaseKey.includes('temporary')) {
-      console.log('❌ [AUTH] Supabase não configurado corretamente')
       throw new Error('Supabase não configurado. Configure as variáveis de ambiente VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY no arquivo .env')
     }
     
     try {
-      console.log('📡 [AUTH] Iniciando autenticação no Supabase...')
-      
       // Implementar timeout manual para evitar travamento
       const authPromise = supabase.auth.signInWithPassword(credentials)
       const timeoutPromise = new Promise((_, reject) => 
         setTimeout(() => reject(new Error('TIMEOUT_LOGIN')), 10000) // 10 segundos para rede lenta
       )
       
-      console.log('⏱️ [AUTH] Aguardando resposta (timeout: 10s)...')
       const result = await Promise.race([authPromise, timeoutPromise])
       const { data, error } = result as Awaited<typeof authPromise>
       
-      console.log('📊 [AUTH] Resposta do Supabase:', { 
-        hasData: !!data, 
-        hasUser: !!data?.user,
-        hasError: !!error,
-        errorMessage: error?.message 
-      })
-      
       if (error) {
-        console.log('❌ [AUTH] Erro do Supabase:', error.message)
         throw error
       }
       
       if (data?.user) {
-        console.log('✅ [AUTH] Usuário autenticado, dados:', {
-          id: data.user.id,
-          email: data.user.email
-        })
-        
         const basicProfile = {
           id: data.user.id,
           email: data.user.email || '',
@@ -146,22 +122,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           updated_at: new Date().toISOString()
         }
         
-        console.log('👤 [AUTH] Perfil criado:', basicProfile)
-        console.log('🔄 [AUTH] Definindo usuário no estado...')
         setUser(basicProfile)
-        console.log('✅ [AUTH] Usuário definido! signIn concluído.')
         return
       }
       
-      console.log('❌ [AUTH] Nenhum usuário nos dados retornados')
       throw new Error('Erro no login - sem dados de usuário')
       
     } catch (error: unknown) {
-      console.error('🔥 [AUTH] Erro no catch:', error)
-      
       // Se for timeout, mostrar mensagem específica
       if (error instanceof Error && error.message === 'TIMEOUT_LOGIN') {
-        throw new Error('Conexão lenta ou instável. Tente novamente ou verifique sua internet.')
+        throw new Error('Timeout de conexão (10s). O servidor pode estar lento ou há problema de rede.')
       }
       
       throw new Error(error instanceof Error ? error.message : 'Erro ao fazer login. Verifique as credenciais.')

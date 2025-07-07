@@ -16,15 +16,7 @@ export const HomePage: React.FC = () => {
     )
   }
   
-  const { user, loading } = authContext
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner message="Verificando usuário..." />
-      </div>
-    )
-  }
+  const { user } = authContext
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white">

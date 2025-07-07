@@ -25,24 +25,16 @@ export const LoginPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log('🚀 [LOGIN] Formulário enviado')
     setLoading(true)
     setError('')
 
     try {
-      console.log('🔐 [LOGIN] Chamando signIn com:', { email: credentials.email, password: '***' })
       await signIn(credentials)
-      console.log('✅ [LOGIN] signIn retornou com sucesso!')
-      console.log('🎯 [LOGIN] Tentando navegar para /dashboard...')
       navigate('/dashboard')
-      console.log('✅ [LOGIN] Navigate executado!')
     } catch (err) {
-      console.error('❌ [LOGIN] Erro capturado:', err)
       setError(err instanceof Error ? err.message : 'Email ou senha inválidos')
     } finally {
-      console.log('🔄 [LOGIN] Desativando loading...')
       setLoading(false)
-      console.log('✅ [LOGIN] Loading desativado!')
     }
   }
 
@@ -109,8 +101,15 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {error && (
-            <div className="text-red-600 text-sm text-center">
-              {error}
+            <div className="bg-red-50 border border-red-200 rounded-md p-4">
+              <div className="text-red-600 text-sm text-center">
+                {error}
+              </div>
+              {error.includes('Timeout de conexão') && (
+                <div className="mt-2 text-xs text-red-500 text-center">
+                  💡 Dica: Tente usar o navegador integrado do VS Code ou verifique sua conexão
+                </div>
+              )}
             </div>
           )}
 
