@@ -545,3 +545,92 @@ export async function cadastrarEAdicionarMembro(
     };
   }
 }
+
+// ============================================================================
+// SERVIÇOS DE ESTATÍSTICAS DO DASHBOARD
+// ============================================================================
+
+/**
+ * Interface para as estatísticas do dashboard
+ */
+export interface DashboardStats {
+  // Estatísticas de turmas
+  turmasUsuario: number; // turmas que o usuário criou (professor) ou participa (aluno/monitor)
+  turmasTotal: number; // total de turmas no sistema
+  
+  // Estatísticas de alunos
+  alunosTotal: number; // total de alunos no sistema
+  
+  // Estatísticas de avaliações (futuro)
+  avaliacoesRealizadas: number;
+}
+
+/**
+ * Busca as estatísticas do dashboard para o usuário atual
+ */
+export async function getDashboardStats(userId: string, userCategoria: string): Promise<DashboardStats> {
+  try {
+    // 1. Buscar total de turmas no sistema
+    const { count: turmasTotal, error: errorTurmasTotal } = await supabase
+      .from('turmas')
+      .select('*', { count: 'exact', head: true });
+
+    if (errorTurmasTotal) {
+      throw new Error(`Erro ao buscar total de turmas: ${errorTurmasTotal.message}`);
+    }
+
+    // 2. Buscar turmas do usuário (criadas como professor ou participando como membro)
+    let turmasUsuario = 0;
+    
+    if (userCategoria === 'professor') {
+      // Para professores: contar turmas criadas
+      const { count, error } = await supabase
+        .from('turmas')
+        .select('*', { count: 'exact', head: true })
+        .eq('professor_id', userId);
+        
+      if (error) {
+        throw new Error(`Erro ao buscar turmas do professor: ${error.message}`);
+      }
+      
+      turmasUsuario = count || 0;
+    } else {
+      // Para alunos/monitores: contar turmas onde participa
+      const { count, error } = await supabase
+        .from('turma_membros')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .eq('status', 'ativo');
+        
+      if (error) {
+        throw new Error(`Erro ao buscar participações do usuário: ${error.message}`);
+      }
+      
+      turmasUsuario = count || 0;
+    }
+
+    // 3. Buscar total de alunos no sistema
+    const { count: alunosTotal, error: errorAlunosTotal } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true })
+      .eq('categoria', 'aluno');
+
+    if (errorAlunosTotal) {
+      throw new Error(`Erro ao buscar total de alunos: ${errorAlunosTotal.message}`);
+    }
+
+    // 4. Avaliações (placeholder para futuras implementações)
+    const avaliacoesRealizadas = 0;
+
+    return {
+      turmasUsuario: turmasUsuario,
+      turmasTotal: turmasTotal || 0,
+      alunosTotal: alunosTotal || 0,
+      avaliacoesRealizadas
+    };
+
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas do dashboard:', error);
+    throw error;
+  }
+}
