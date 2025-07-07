@@ -107,7 +107,6 @@ export const LoginPage: React.FC = () => {
               </div>
               {error.includes('Timeout de conexão') && (
                 <div className="mt-2 text-xs text-red-500 text-center">
-                  💡 Dica: Tente usar o navegador integrado do VS Code ou verifique sua conexão
                 </div>
               )}
             </div>
