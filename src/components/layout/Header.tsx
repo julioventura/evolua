@@ -17,18 +17,18 @@ export const Header: React.FC = () => {
   }
 
   return (
-    <header className="bg-white shadow-sm border-b">
+    <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-primary-600">
+            <Link to="/" className="text-xl font-bold text-primary-600 dark:text-primary-400">
               EVOLUA
             </Link>
           </div>
           <div className="flex-1 flex flex-col items-center">
             {user && (
-              <span className="text-base md:text-lg font-medium text-gray-800">
-                {user.nome} <span className="text-primary-600 font-normal">({user.categoria})</span>
+              <span className="text-base md:text-lg font-medium text-gray-800 dark:text-gray-200">
+                {user.nome} <span className="text-primary-600 dark:text-primary-400 font-normal">({user.categoria})</span>
               </span>
             )}
           </div>
@@ -37,13 +37,13 @@ export const Header: React.FC = () => {
               <>
                 <Link
                   to="/dashboard"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Dashboard
                 </Link>
                 <button
                   onClick={handleSignOut}
-                  className="bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700"
+                  className="bg-primary-600 dark:bg-primary-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-primary-700 dark:hover:bg-primary-700"
                 >
                   Sair
                 </button>
@@ -52,13 +52,13 @@ export const Header: React.FC = () => {
               <>
                 <Link
                   to="/login"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="text-gray-700 hover:text-primary-600 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium"
                 >
                   Cadastro
                 </Link>

@@ -6,6 +6,7 @@ export interface User {
   nome: string;
   avatar_url?: string;
   categoria: 'aluno' | 'professor' | 'admin' | 'monitor' | 'outro';
+  theme_preference?: 'light' | 'dark';
   created_at: string;
   updated_at: string;
 }
