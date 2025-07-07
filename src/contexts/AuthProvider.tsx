@@ -79,19 +79,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (data: RegisterData) => {
     try {
-      const { error } = await supabase.auth.signUp({
+      // 1. Criar usuário no auth (SEM enviar metadata que pode causar trigger)
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
-        password: data.password,
-        options: {
-          data: {
-            nome: data.nome,
-            categoria: data.categoria || 'aluno'
-          }
-        }
+        password: data.password
+        // Removido: options com metadata para evitar triggers
       })
-      if (error) throw error
+
+      if (authError) {
+        console.error('Erro na autenticação:', authError)
+        throw authError
+      }
+
+      console.log('✅ Usuário criado no auth:', authData.user?.id)
+
+      // 2. Se o usuário foi criado, criar profile manualmente
+      if (authData.user) {
+        console.log('Criando profile manualmente...')
+        
+        // Aguardar um pouco para garantir que o usuário foi salvo
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        try {
+          const { data: profileData, error: profileError } = await supabase
+            .from('profiles')
+            .insert([{
+              id: authData.user.id,
+              nome: data.nome,
+              categoria: data.categoria || 'aluno',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            }])
+            .select()
+            .single()
+
+          if (profileError) {
+            console.error('❌ Erro ao criar profile:', profileError)
+            // Não falhar aqui, o usuário já foi criado
+            console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.')
+          } else {
+            console.log('✅ Profile criado com sucesso:', profileData)
+          }
+        } catch (profileError) {
+          console.error('❌ Exceção ao criar profile:', profileError)
+          console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.')
+        }
+      }
+
     } catch (error) {
-      console.error('Registration error:', error)
+      console.error('❌ Erro geral no signup:', error)
       throw new Error('Erro ao criar conta. Tente novamente.')
     }
   }

@@ -75,11 +75,11 @@ Este arquivo contém o planejamento e acompanhamento do desenvolvimento do proje
 
 ### Sistema de Turmas
 
-- [ ] Modelo de dados para turmas
-- [ ] CRUD de turmas (para professores)
-- [ ] Listagem de turmas
+- [X] Modelo de dados para turmas
+- [X] CRUD de turmas (para professores)
+- [X] Listagem de turmas
 - [ ] Sistema de convites/códigos para alunos
-- [ ] Página de detalhes da turma
+- [X] Página de detalhes da turma
 
 ### Sistema de Avaliações
 
@@ -108,7 +108,7 @@ Este arquivo contém o planejamento e acompanhamento do desenvolvimento do proje
 ### Notificações
 
 - [ ] Sistema de notificações em tempo real
-- [ ] Notificações por email
+- [ ] Notificações por email e/ou whatsapp
 - [ ] Alertas de desempenho
 
 ### Funcionalidades Sociais
@@ -121,16 +121,16 @@ Este arquivo contém o planejamento e acompanhamento do desenvolvimento do proje
 
 ### UX/UI
 
-- [ ] Tema escuro
-- [ ] Animações e transições
+- [X] Tema escuro
+- [X] Animações e transições
 - [ ] Responsividade mobile otimizada
 - [ ] Acessibilidade (a11y)
 
 ### Performance
 
-- [ ] Lazy loading de componentes
-- [ ] Otimização de consultas
-- [ ] Cache de dados
+- [X] Lazy loading de componentes
+- [X] Otimização de consultas
+- [X] Cache de dados
 - [ ] PWA (Progressive Web App)
 
 ### Administração
@@ -183,14 +183,14 @@ Este arquivo contém o planejamento e acompanhamento do desenvolvimento do proje
    - ✅ Testar build de produção
 
 6. **Modelagem de Dados**
-   - Definir schema das tabelas de turmas
-   - Definir schema das tabelas de avaliações
-   - Criar relacionamentos entre tabelas
+   - ✅ Definir schema das tabelas de turmas
+   - ✅ Definir schema das tabelas de avaliações
+   - ✅ Criar relacionamentos entre tabelas
 
 7. **Implementar CRUD de Turmas**
-   - Página de criação de turma
-   - Listagem de turmas
-   - Edição e exclusão de turmas
+   - ✅ Página de criação de turma
+   - ✅ Listagem de turmas
+   - ✅ Edição e exclusão de turmas
 
 ## 🏗️ Arquitetura Técnica
 
