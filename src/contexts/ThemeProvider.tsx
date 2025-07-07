@@ -1,5 +1,5 @@
 import React, { createContext, useEffect, useState } from 'react'
-import { supabase } from '../lib/supabaseClient'
+// import { supabase } from '../lib/supabaseClient' // Temporariamente desabilitado
 import { useAuth } from './AuthContext'
 
 export type Theme = 'light' | 'dark'
@@ -24,38 +24,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const authContext = useAuth()
   const user = authContext?.user
 
-  // Carregar tema do usuário logado ou do localStorage
+  // Carregar tema do localStorage (temporariamente sem Supabase)
   useEffect(() => {
-    const loadTheme = async () => {
-      if (user) {
-        // Usuário logado: buscar preferência do Supabase
-        try {
-          const { data, error } = await supabase
-            .from('profiles')
-            .select('theme_preference')
-            .eq('id', user.id)
-            .single()
-
-          if (data?.theme_preference && !error) {
-            setThemeState(data.theme_preference as Theme)
-          } else if (error?.code === 'PGRST116') {
-            // Registro não encontrado - usar tema padrão
-            setThemeState('light')
-          } else {
-            setThemeState('light')
-          }
-        } catch (error) {
-          console.error('Erro ao carregar tema do usuário:', error)
-          setThemeState('light')
-        }
+    const loadTheme = () => {
+      // Por enquanto, usar apenas localStorage até RLS ser resolvido
+      const savedTheme = localStorage.getItem('theme') as Theme
+      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+        console.log('📱 Tema carregado do localStorage:', savedTheme)
+        setThemeState(savedTheme)
       } else {
-        // Usuário não logado: usar localStorage
-        const savedTheme = localStorage.getItem('theme') as Theme
-        if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-          setThemeState(savedTheme)
-        } else {
-          setThemeState('light')
-        }
+        console.log('🔄 Usando tema padrão: light')
+        setThemeState('light')
+        localStorage.setItem('theme', 'light')
       }
     }
 
@@ -70,26 +50,31 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   }, [theme])
 
   const setTheme = async (newTheme: Theme) => {
+    console.log('🎨 setTheme iniciado:', { newTheme, user: user?.email, userId: user?.id })
     setThemeState(newTheme)
 
-    if (user) {
-      // Usuário logado: salvar no Supabase
-      try {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ theme_preference: newTheme })
-          .eq('id', user.id)
+    // Por enquanto, salvar apenas no localStorage até RLS ser resolvido
+    localStorage.setItem('theme', newTheme)
+    console.log('💾 Tema salvo no localStorage')
 
-        if (error) {
-          console.error('Erro ao salvar tema:', error)
-        }
-      } catch (error) {
-        console.error('Erro ao salvar tema:', error)
-      }
-    } else {
-      // Usuário não logado: salvar no localStorage
-      localStorage.setItem('theme', newTheme)
-    }
+    // TODO: Reativar salvamento no Supabase quando RLS estiver funcionando
+    // if (user) {
+    //   try {
+    //     const { data, error } = await supabase
+    //       .from('profiles')
+    //       .update({ theme_preference: newTheme })
+    //       .eq('id', user.id)
+    //       .select()
+    //     
+    //     if (error) {
+    //       console.error('❌ Erro ao salvar tema no Supabase:', error)
+    //     } else {
+    //       console.log('✅ Tema salvo no Supabase com sucesso!')
+    //     }
+    //   } catch (error) {
+    //     console.error('❌ Erro inesperado ao salvar tema:', error)
+    //   }
+    // }
   }
 
   const toggleTheme = () => {
