@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { useAuth } from '../contexts/AuthContext'
+import { useAuth } from '../hooks/useAuth'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { PasswordInput } from '../components/ui/PasswordInput'
@@ -14,14 +14,8 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
-  const authContext = useAuth()
+  const { signIn } = useAuth()
   const navigate = useNavigate()
-  
-  if (!authContext) {
-    return <div>Loading...</div>
-  }
-  
-  const { signIn } = authContext
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -32,7 +26,7 @@ export const LoginPage: React.FC = () => {
       await signIn(credentials)
       navigate('/dashboard')
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Email ou senha inválidos')
+      setError(err instanceof Error ? err.message : 'Erro ao fazer login')
     } finally {
       setLoading(false)
     }
@@ -105,10 +99,6 @@ export const LoginPage: React.FC = () => {
               <div className="text-red-600 text-sm text-center">
                 {error}
               </div>
-              {error.includes('Timeout de conexão') && (
-                <div className="mt-2 text-xs text-red-500 text-center">
-                </div>
-              )}
             </div>
           )}
 
