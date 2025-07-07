@@ -1,5 +1,4 @@
 import React from 'react'
-import { ThemeToggle } from '../ui/ThemeToggle'
 
 export const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear()
