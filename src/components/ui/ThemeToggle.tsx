@@ -1,14 +1,8 @@
-import React, { useContext } from 'react'
-import { ThemeContext } from '../../contexts/ThemeProvider'
+import React from 'react'
+import { useTheme } from '../../hooks/useTheme'
 
 export const ThemeToggle: React.FC = () => {
-  const context = useContext(ThemeContext)
-  
-  if (!context) {
-    return <div className="text-red-500 text-xs">Theme context not found</div>
-  }
-  
-  const { theme, toggleTheme } = context
+  const { theme, toggleTheme } = useTheme()
 
   const handleClick = () => {
     console.log('Theme toggle clicked, current theme:', theme)

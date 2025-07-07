@@ -1,16 +1,12 @@
--- LIMPEZA COMPLETA: Remover theme_preference da tabela profiles
+-- LIMPEZA SELETIVA: Remover APENAS theme_preference da tabela profiles
 
--- 1. Remover todas as políticas relacionadas ao tema
-DROP POLICY IF EXISTS "users_select_own_profile" ON profiles;
-DROP POLICY IF EXISTS "users_update_own_profile" ON profiles;
-DROP POLICY IF EXISTS "users_insert_own_profile" ON profiles;
-DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
-DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
+-- 1. Remover APENAS políticas específicas do tema (se existirem)
 DROP POLICY IF EXISTS "Users can update own profile theme" ON profiles;
-DROP POLICY IF EXISTS "Enable read access for all users" ON profiles;
-DROP POLICY IF EXISTS "Enable insert for authenticated users only" ON profiles;
-DROP POLICY IF EXISTS "Enable update for users based on email" ON profiles;
+DROP POLICY IF EXISTS "profile_theme_policy" ON profiles;
+DROP POLICY IF EXISTS "theme_update_policy" ON profiles;
+
+-- NÃO remover políticas básicas que são necessárias para login/registro:
+-- "Users can view own profile", "Users can update own profile", etc.
 
 -- 2. Remover a coluna theme_preference completamente
 ALTER TABLE profiles DROP COLUMN IF EXISTS theme_preference;
@@ -21,7 +17,7 @@ FROM information_schema.columns
 WHERE table_name = 'profiles' 
 ORDER BY ordinal_position;
 
--- 4. Verificar estrutura final da tabela
-\d profiles;
+-- 4. Verificar políticas existentes (não devem ter mudado)
+SELECT policyname, cmd FROM pg_policies WHERE tablename = 'profiles';
 
-SELECT 'Coluna theme_preference removida com sucesso!' as status;
+SELECT 'Coluna theme_preference removida com sucesso - políticas básicas preservadas!' as status;
