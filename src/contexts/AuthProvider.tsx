@@ -97,15 +97,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const signOut = async () => {
+    // Limpar estado local imediatamente
+    setUser(null)
+    
+    // Tentar limpar no Supabase em background (sem aguardar)
     try {
-      const { error } = await supabase.auth.signOut()
-      if (error) throw error
-      
-      setUser(null)
-    } catch (error) {
-      console.error('Logout error:', error)
-      // Mesmo com erro, limpar estado local
-      setUser(null)
+      supabase.auth.signOut().catch(() => {
+        // Ignorar erros de signOut remoto
+      })
+    } catch {
+      // Ignorar erros
     }
   }
 

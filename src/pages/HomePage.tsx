@@ -7,7 +7,7 @@ import { DevModeNotice } from '../components/ui/DevModeNotice'
 export const HomePage: React.FC = () => {
   const [showDevNotice, setShowDevNotice] = useState(true)
   const authContext = useAuth()
-  
+
   if (!authContext) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -15,7 +15,7 @@ export const HomePage: React.FC = () => {
       </div>
     )
   }
-  
+
   const { user } = authContext
 
   return (
@@ -23,7 +23,7 @@ export const HomePage: React.FC = () => {
       {showDevNotice && (
         <DevModeNotice onDismiss={() => setShowDevNotice(false)} />
       )}
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
@@ -33,10 +33,10 @@ export const HomePage: React.FC = () => {
             Avaliação de Desempenho na Prática de Alunos
           </p>
           <p className="text-lg text-gray-500 max-w-3xl mx-auto mb-12">
-            Uma plataforma moderna e intuitiva para avaliação de desempenho de alunos em aulas práticas, 
+            Uma plataforma moderna para avaliação de desempenho de alunos em aulas práticas,
             permitindo acompanhamento detalhado do progresso e desenvolvimento de habilidades.
           </p>
-          
+
           {user ? (
             <div className="space-y-4">
               <p className="text-lg text-gray-700">
@@ -53,20 +53,20 @@ export const HomePage: React.FC = () => {
             <div className="space-x-4">
               <Link
                 to="/register"
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
+                className="inline-flex items-center px-6 py-3 border border-gray-500 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
               >
                 Começar Agora
               </Link>
               <Link
                 to="/login"
-                className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 transition-colors"
               >
                 Fazer Login
               </Link>
             </div>
           )}
         </div>
-        
+
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="text-center p-6">
             <div className="w-12 h-12 mx-auto mb-4 bg-primary-100 rounded-lg flex items-center justify-center">
@@ -79,7 +79,7 @@ export const HomePage: React.FC = () => {
               Interface intuitiva para professores avaliarem o desempenho dos alunos de forma rápida e eficiente.
             </p>
           </div>
-          
+
           <div className="text-center p-6">
             <div className="w-12 h-12 mx-auto mb-4 bg-primary-100 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +91,7 @@ export const HomePage: React.FC = () => {
               Acompanhe o progresso dos alunos com relatórios visuais e métricas de desempenho.
             </p>
           </div>
-          
+
           <div className="text-center p-6">
             <div className="w-12 h-12 mx-auto mb-4 bg-primary-100 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
