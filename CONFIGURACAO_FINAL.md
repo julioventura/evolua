@@ -3,6 +3,7 @@
 ## 🎯 **CONFIGURAÇÕES APLICADAS:**
 
 ### ⚙️ **Vite Config (vite.config.ts):**
+
 ```typescript
 export default defineConfig({
   plugins: [react()],
@@ -15,6 +16,7 @@ export default defineConfig({
 ```
 
 ### 🌐 **React Router (App.tsx):**
+
 ```typescript
 <BrowserRouter basename="/evolua">
   <Routes>
@@ -27,6 +29,7 @@ export default defineConfig({
 ```
 
 ### 🔧 **Apache Config (.htaccess):**
+
 ```apache
 RewriteEngine On
 RewriteBase /evolua/
@@ -38,7 +41,8 @@ RewriteRule . /evolua/index.html [L]
 ## 📁 **ESTRUTURA DE DEPLOY:**
 
 ### 🗂️ **Pasta dist/ pronta para upload:**
-```
+
+```text
 dist/
 ├── index.html (título atualizado, paths corretos)
 ├── .htaccess (configuração Apache)
@@ -49,6 +53,7 @@ dist/
 ```
 
 ### 🌍 **URLs que funcionarão:**
+
 - `https://dentistas.com.br/evolua/` → HomePage
 - `https://dentistas.com.br/evolua/login` → LoginPage  
 - `https://dentistas.com.br/evolua/register` → RegisterPage
@@ -57,14 +62,17 @@ dist/
 ## 🚀 **INSTRUÇÕES DE DEPLOY:**
 
 ### 1️⃣ **Upload:**
+
 ```bash
 # Copiar TODA a pasta dist/ para:
 public_html/evolua/
 ```
 
 ### 2️⃣ **Supabase URLs:**
+
 No painel do Supabase, adicionar:
-```
+
+```text
 Site URL: https://dentistas.com.br/evolua
 Redirect URLs: 
 - https://dentistas.com.br/evolua
@@ -72,8 +80,10 @@ Redirect URLs:
 ```
 
 ### 3️⃣ **Variáveis de Ambiente:**
+
 No servidor, configurar:
-```
+
+```env
 VITE_SUPABASE_URL=https://rpuhqfcvlrrfnuvnlfrd.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ```
@@ -89,6 +99,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 ## 🎉 **SISTEMA PRONTO PARA PRODUÇÃO:**
 
 ### 🌟 **Funcionalidades:**
+
 - Login/logout via Supabase
 - Timeout de conexão (10s)
 - Navegação SPA
@@ -97,6 +108,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - Responsivo mobile
 
 ### 🔒 **Segurança:**
+
 - Variáveis de ambiente protegidas
 - Autenticação via Supabase
 - Rotas protegidas
