@@ -12,6 +12,8 @@ import { DashboardPage } from './pages/DashboardPage'
 import { TurmasPage } from './pages/TurmasPage'
 import { TurmaFormPage } from './pages/TurmaFormPage'
 import { TurmaDetailsPage } from './pages/TurmaDetailsPage'
+import { PerfilPage } from './pages/PerfilPage'
+import { ConfiguracoesPage } from './pages/ConfiguracoesPage'
 import { useAuth } from './contexts/AuthContext'
 
 // Componente para proteger rotas privadas
@@ -93,6 +95,24 @@ function App() {
                 element={
                   <ProtectedRoute>
                     <TurmaFormPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Rotas de Perfil */}
+              <Route 
+                path="/perfil" 
+                element={
+                  <ProtectedRoute>
+                    <PerfilPage />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/configuracoes" 
+                element={
+                  <ProtectedRoute>
+                    <ConfiguracoesPage />
                   </ProtectedRoute>
                 } 
               />

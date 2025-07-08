@@ -155,10 +155,11 @@ export const DashboardPage: React.FC = () => {
 
         {/* Seção de Ações Rápidas */}
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Ações Rápidas</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Ações</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {user.categoria === 'professor' ? (
               <>
+
                 <button className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
                   <div className="text-center">
                     <svg className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,6 +168,7 @@ export const DashboardPage: React.FC = () => {
                     <p className="font-medium text-gray-900 dark:text-white">Nova Avaliação</p>
                   </div>
                 </button>
+
                 <button className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
                   <div className="text-center">
                     <svg className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -175,6 +177,7 @@ export const DashboardPage: React.FC = () => {
                     <p className="font-medium text-gray-900 dark:text-white">Relatórios</p>
                   </div>
                 </button>
+
                 <button className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
                   <div className="text-center">
                     <svg className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -183,6 +186,7 @@ export const DashboardPage: React.FC = () => {
                     <p className="font-medium text-gray-900 dark:text-white">Gerenciar Alunos</p>
                   </div>
                 </button>
+                
               </>
             ) : (
               <>
@@ -217,16 +221,17 @@ export const DashboardPage: React.FC = () => {
 
         {/* Seção de Atividades Recentes */}
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Atividades Recentes</h2>
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Histórico</h2>
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <div className="text-center text-gray-500 dark:text-gray-400 py-8">
               <svg className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
-              <p>Nenhuma atividade recente</p>
+              <p>Nenhuma ação registrada</p>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   )
