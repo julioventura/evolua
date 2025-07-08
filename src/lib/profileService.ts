@@ -107,6 +107,7 @@ export const signUpWithManualProfile = async (data: RegisterData) => {
   }
 }
 
+
 // Função para verificar se profile existe e criar se necessário
 export const ensureProfileExists = async (user: { id: string; email: string; user_metadata?: Record<string, unknown> }) => {
   if (!user) return null
@@ -134,5 +135,36 @@ export const ensureProfileExists = async (user: { id: string; email: string; use
   } catch (error) {
     console.error('Erro ao verificar/criar profile:', error)
     return null
+  }
+}
+
+// Função para atualizar profile
+export const updateProfile = async (
+  id: string,
+  data: Partial<{
+    nome: string
+    whatsapp: string
+    cidade: string
+    estado: string
+    instituicao: string
+    registro_profissional: string
+  }>
+) => {
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        ...data,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', id)
+
+    if (error) {
+      throw error
+    }
+    return true
+  } catch (error) {
+    console.error('Erro ao atualizar profile:', error)
+    return false
   }
 }

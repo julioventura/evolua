@@ -120,7 +120,7 @@ export const Header: React.FC = () => {
                     className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Editar Perfil
+                    Meu Perfil
                   </Link>
                   <Link
                     to="/configuracoes"

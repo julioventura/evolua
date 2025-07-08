@@ -1,9 +1,14 @@
-import React, { useState } from 'react'
-import { useAuth } from '../hooks/useAuth'
+
+
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '../hooks/useAuth';
+import { updateProfile } from '../lib/profileService';
+import { supabase } from '../lib/supabaseClient';
+
 
 export const PerfilPage: React.FC = () => {
-  const { user } = useAuth()
-  const [isEditing, setIsEditing] = useState(false)
+  const { user } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     nome: user?.nome || '',
     email: user?.email || '',
@@ -13,11 +18,58 @@ export const PerfilPage: React.FC = () => {
     estado: '',
     instituicao: '',
     registro_profissional: ''
-  })
+  });
 
-  const handleSave = () => {
-    // TODO: Implementar salvamento do perfil
-    setIsEditing(false)
+  // Carregar dados atualizados do profile ao montar
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user) return;
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (data && !error) {
+        setFormData({
+          nome: data.nome || '',
+          email: data.email || '',
+          categoria: data.categoria || 'aluno',
+          whatsapp: data.whatsapp || '',
+          cidade: data.cidade || '',
+          estado: data.estado || '',
+          instituicao: data.instituicao || '',
+          registro_profissional: data.registro_profissional || ''
+        });
+      }
+    };
+    fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
+
+  const handleSave = async () => {
+    if (!user) return
+    setLoading(true)
+    setError(null)
+    setSuccess(null)
+    const ok = await updateProfile(user.id, {
+      nome: formData.nome,
+      whatsapp: formData.whatsapp,
+      cidade: formData.cidade,
+      estado: formData.estado,
+      instituicao: formData.instituicao,
+      registro_profissional: formData.registro_profissional,
+    })
+    if (ok) {
+      setSuccess('Perfil atualizado com sucesso!')
+      setIsEditing(false)
+    } else {
+      setError('Erro ao salvar perfil. Tente novamente.')
+    }
+    setLoading(false)
   }
 
   const handleCancel = () => {
@@ -78,6 +130,12 @@ export const PerfilPage: React.FC = () => {
           </div>
 
           <div className="px-6 py-6">
+            {error && (
+              <div className="mb-4 text-red-600 dark:text-red-400">{error}</div>
+            )}
+            {success && (
+              <div className="mb-4 text-green-600 dark:text-green-400">{success}</div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -170,14 +228,16 @@ export const PerfilPage: React.FC = () => {
                 <button
                   onClick={handleCancel}
                   className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                  disabled={loading}
                 >
                   Cancelar
                 </button>
                 <button
                   onClick={handleSave}
                   className="px-4 py-2 bg-primary-600 dark:bg-primary-500 text-white rounded-md hover:bg-primary-700 dark:hover:bg-primary-600 transition-colors"
+                  disabled={loading}
                 >
-                  Salvar
+                  {loading ? 'Salvando...' : 'Salvar'}
                 </button>
               </div>
             )}
