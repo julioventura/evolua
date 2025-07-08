@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Investigar e Corrigir Foreign Key Constraint
+-- e-volua - Investigar e Corrigir Foreign Key Constraint
 -- ============================================================================
 
 -- 1. Verificar todas as foreign keys na tabela profiles

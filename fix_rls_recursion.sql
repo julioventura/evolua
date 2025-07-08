@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Correção de RLS (Recursão Infinita)
+-- e-volua - Correção de RLS (Recursão Infinita)
 -- ============================================================================
 
 -- TEMPORARIAMENTE desabilitar RLS para testar

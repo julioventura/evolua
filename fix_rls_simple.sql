@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Correção Definitiva de RLS (Simples e Sem Recursão)
+-- e-volua - Correção Definitiva de RLS (Simples e Sem Recursão)
 -- ============================================================================
 
 -- TEMPORARIAMENTE desabilitar RLS para limpar tudo

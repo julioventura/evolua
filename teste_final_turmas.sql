@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Teste Final do Sistema de Turmas
+-- e-volua - Teste Final do Sistema de Turmas
 -- ============================================================================
 
 -- Verificar se existe uma turma de teste

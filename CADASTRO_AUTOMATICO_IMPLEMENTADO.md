@@ -1,8 +1,8 @@
-# 🚀 EVOLUA - Sistema de Turmas com Cadastro Automático IMPLEMENTADO
+# 🚀 e-volua - Sistema de Turmas com Cadastro Automático IMPLEMENTADO
 
 ## ✅ **FUNCIONALIDADE COMPLETAMENTE IMPLEMENTADA**
 
-O sistema de turmas do EVOLUA agora inclui **cadastro automático de usuários**! 
+O sistema de turmas do e-volua agora inclui **cadastro automático de usuários**! 
 
 ### 🆕 **NOVA FUNCIONALIDADE: Cadastro Automático**
 

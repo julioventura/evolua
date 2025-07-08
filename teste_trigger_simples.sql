@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Teste Isolado do Trigger
+-- e-volua - Teste Isolado do Trigger
 -- ============================================================================
 
 -- 1. Verificar se o trigger existe

@@ -1,5 +1,5 @@
 // ============================================================================
-// EVOLUA - Versão Alternativa do AuthProvider com Criação Manual de Profile
+// e-volua - Versão Alternativa do AuthProvider com Criação Manual de Profile
 // ============================================================================
 
 import { supabase } from './supabaseClient'

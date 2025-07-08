@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Solução Corrigida Sem Coluna Email
+-- e-volua - Solução Corrigida Sem Coluna Email
 -- ============================================================================
 
 -- Desabilitar RLS

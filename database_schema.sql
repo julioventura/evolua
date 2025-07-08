@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Schema Completo do Banco de Dados
+-- e-volua - Schema Completo do Banco de Dados
 -- ============================================================================
 
 -- Extensão da tabela profiles existente

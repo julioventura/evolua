@@ -1,5 +1,5 @@
 // ============================================================================
-// EVOLUA - Página de Detalhes da Turma
+// e-volua - Página de Detalhes da Turma
 // ============================================================================
 
 import { useState, useEffect } from 'react';

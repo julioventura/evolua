@@ -1,5 +1,5 @@
 // ============================================================================
-// EVOLUA - Tipos TypeScript
+// e-volua - Tipos TypeScript
 // ============================================================================
 
 // ============================================================================
@@ -37,6 +37,9 @@ export interface RegisterData {
   categoria?: User['categoria'];
   instituicao?: string;
   registro_profissional?: string;
+  whatsapp?: string;
+  cidade?: string;
+  estado?: string;
 }
 
 export interface AuthContextType {

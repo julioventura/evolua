@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Debug dos Membros da Turma
+-- e-volua - Debug dos Membros da Turma
 -- ============================================================================
 
 -- Verificar estrutura da tabela turma_membros

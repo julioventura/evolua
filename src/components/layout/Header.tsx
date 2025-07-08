@@ -23,7 +23,7 @@ export const Header: React.FC = () => {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <Link to="/" className="text-xl font-bold text-primary-600 dark:text-primary-400">
-              EVOLUA
+              e-volua
             </Link>
           </div>
           <div className="flex-1 flex flex-col items-center">

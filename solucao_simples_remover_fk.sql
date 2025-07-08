@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Solução Simples - Remover Foreign Key
+-- e-volua - Solução Simples - Remover Foreign Key
 -- ============================================================================
 
 -- Remover a foreign key constraint que está causando o problema

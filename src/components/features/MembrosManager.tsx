@@ -1,5 +1,5 @@
 // ============================================================================
-// EVOLUA - Componente de Gerenciamento de Membros (Versão Sóbria)
+// e-volua - Componente de Gerenciamento de Membros (Versão Sóbria)
 // ============================================================================
 
 import { useState } from 'react';
@@ -7,6 +7,7 @@ import { Button } from '../ui/Button';
 import { Input } from '../ui/Input';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
 import { ConfirmCadastroModal } from './ConfirmCadastroModal';
+import { CadastroFalhouModal } from '../ui/CadastroFalhouModal';
 import type { TurmaMembro, Turma } from '../../types';
 
 interface MembrosManagerProps {
@@ -45,6 +46,7 @@ export function MembrosManager({
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [showAddForm, setShowAddForm] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showCadastroFalhouModal, setShowCadastroFalhouModal] = useState(false);
   const [pendingRegistration, setPendingRegistration] = useState<{
     email: string;
     papel: TurmaMembro['papel'];
@@ -106,7 +108,11 @@ export function MembrosManager({
     try {
       setLoadingAction('registering');
       
+      console.log('🚀 Iniciando cadastro de membro:', { email, papel, dadosCompletos });
+      
       await onCadastrarEAdicionarMembro(email, papel, dadosCompletos);
+      
+      console.log('✅ Membro cadastrado com sucesso!');
       
       // Sucesso
       setNovoMembroEmail('');
@@ -114,10 +120,25 @@ export function MembrosManager({
       setShowConfirmModal(false);
       setPendingRegistration(null);
       
+      // Feedback positivo
+      alert('Usuário cadastrado e adicionado à turma com sucesso!');
+      
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
-      console.error('Erro ao cadastrar membro:', error);
-      alert(errorMessage || 'Erro ao cadastrar membro');
+      console.error('❌ Erro ao cadastrar membro:', error);
+      
+      // Mostrar modal de erro ao invés de alert
+      if (errorMessage.includes('User not allowed') || 
+          errorMessage.includes('Não foi possível criar') || 
+          errorMessage.includes('automaticamente')) {
+        setShowCadastroFalhouModal(true);
+      } else if (errorMessage.includes('Email already registered')) {
+        alert('Erro: Este email já está registrado no sistema. Tente adicioná-lo diretamente.');
+      } else if (errorMessage.includes('email')) {
+        alert('Erro: Formato de email inválido. Verifique o endereço digitado.');
+      } else {
+        alert(`Erro ao cadastrar usuário: ${errorMessage}`);
+      }
     } finally {
       setLoadingAction(null);
     }
@@ -126,6 +147,26 @@ export function MembrosManager({
   const handleCancelCadastro = () => {
     setShowConfirmModal(false);
     setPendingRegistration(null);
+  };
+
+  const handleCloseCadastroFalhou = () => {
+    setShowCadastroFalhouModal(false);
+  };
+
+  const handleTryAgain = () => {
+    setShowCadastroFalhouModal(false);
+    setShowConfirmModal(true);
+  };
+
+  const handleSendInstructions = () => {
+    if (pendingRegistration) {
+      const email = pendingRegistration.email;
+      const subject = 'Convite para participar da turma';
+      const body = `Olá!\n\nVocê foi convidado para participar da turma "${turma.nome}".\n\nPara aceitar o convite, acesse o sistema e crie sua conta com este email: ${email}\n\nApós criar sua conta, você será adicionado à turma automaticamente.\n\nObrigado!`;
+      
+      window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+    }
+    setShowCadastroFalhouModal(false);
   };
 
   const handleRemoverMembro = async (userId: string) => {
@@ -577,6 +618,17 @@ export function MembrosManager({
           onConfirm={handleConfirmCadastro}
           onCancel={handleCancelCadastro}
           loading={loadingAction === 'registering'}
+        />
+      )}
+
+      {/* Modal de cadastro falhou */}
+      {showCadastroFalhouModal && pendingRegistration && (
+        <CadastroFalhouModal
+          isOpen={showCadastroFalhouModal}
+          onClose={handleCloseCadastroFalhou}
+          onTryAgain={handleTryAgain}
+          onSendInstructions={handleSendInstructions}
+          email={pendingRegistration.email}
         />
       )}
     </div>

@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Desabilitar TODOS os Triggers e Usar Apenas Frontend
+-- e-volua - Desabilitar TODOS os Triggers e Usar Apenas Frontend
 -- ============================================================================
 
 -- 1. Remover TODOS os triggers relacionados a auth.users

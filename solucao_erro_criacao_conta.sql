@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Solução para Erro de Criação de Conta
+-- e-volua - Solução para Erro de Criação de Conta
 -- ============================================================================
 
 -- 1. Criar função para lidar com novos usuários

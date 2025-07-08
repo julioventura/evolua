@@ -28,16 +28,9 @@ export const HomePage: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">        
         <div className="text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6">
-            EVOLUA
+          <h1 className="text-4xl md:text-6xl font-bold text-yellow-500 dark:text-yellow-400 mb-12">
+            e-volua
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-300 mb-8">
-            Avaliação de Desempenho na Prática de Alunos
-          </p>
-          <p className="text-lg text-gray-500 dark:text-gray-400 max-w-3xl mx-auto mb-12">
-            Uma plataforma moderna para avaliação de desempenho de alunos em aulas práticas,
-            permitindo acompanhamento detalhado do progresso e desenvolvimento de habilidades.
-          </p>
 
           {user ? (
             <div className="space-y-4">
@@ -97,7 +90,7 @@ export const HomePage: React.FC = () => {
           <div className="text-center p-6">
             <div className="w-12 h-12 mx-auto mb-4 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6 text-primary-100 dark:text-primary-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
++                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Gestão de Turmas</h3>

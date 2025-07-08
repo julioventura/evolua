@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Script de Aplicação do Schema (Passo a Passo)
+-- e-volua - Script de Aplicação do Schema (Passo a Passo)
 -- ============================================================================
 
 -- INSTRUÇÕES:

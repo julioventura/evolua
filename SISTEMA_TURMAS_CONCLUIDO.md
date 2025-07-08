@@ -1,8 +1,8 @@
-# ✅ EVOLUA - Sistema de Turmas CONCLUÍDO
+# ✅ e-volua - Sistema de Turmas CONCLUÍDO
 
 ## ✅ **SISTEMA COMPLETO E ATUALIZADO**
 
-O sistema de turmas do EVOLUA está **100% implementado e funcionando**! 
+O sistema de turmas do e-volua está **100% implementado e funcionando**! 
 
 ### 🆕 **NOVA FUNCIONALIDADE: Cadastro Automático**
 - ✅ **Verificação de usuário**: Verifica se o email existe no sistema antes de adicionar

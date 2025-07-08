@@ -1,9 +1,9 @@
 // ============================================================================
-// EVOLUA - Página de Turmas
+// e-volua - Página de Turmas
 // ============================================================================
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useTurmas } from '../hooks/useTurmas';
 import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
@@ -13,6 +13,7 @@ import type { Turma } from '../types';
 
 export function TurmasPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { 
     turmas, 
     loading, 
@@ -98,9 +99,9 @@ export function TurmasPage() {
   // ============================================================================
 
   const TurmaCard = ({ turma, isMinhaTurma }: { turma: Turma; isMinhaTurma: boolean }) => (
-    <Link 
-      to={`/turmas/${turma.id}`}
+    <div 
       className="block bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer"
+      onClick={() => navigate(`/turmas/${turma.id}`)}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
@@ -180,31 +181,45 @@ export function TurmasPage() {
 
       {/* Ações (apenas para minhas turmas) */}
       {isMinhaTurma && (
-        <div className="flex items-center justify-end pt-4 border-t border-gray-200 space-x-2">
-          <Link 
-            to={`/turmas/${turma.id}/editar`}
-            onClick={(e) => e.stopPropagation()}
+        <div className="flex items-center justify-between pt-4 border-t border-gray-200 space-x-2">
+          <Button 
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/turmas/${turma.id}`);
+            }}
+            variant="primary"
+            size="sm"
           >
-            <Button size="sm" variant="outline">
+            Acessar
+          </Button>
+          <div className="flex space-x-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/turmas/${turma.id}/editar`);
+              }}
+            >
               Editar
             </Button>
-          </Link>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleExcluir(turma);
-            }}
-            disabled={loadingAction === turma.id}
-            className="bg-red-600 hover:bg-red-700 text-white"
-          >
-            {loadingAction === turma.id ? <LoadingSpinner size="sm" /> : 'Excluir'}
-          </Button>
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleExcluir(turma);
+              }}
+              disabled={loadingAction === turma.id}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              {loadingAction === turma.id ? <LoadingSpinner size="sm" /> : 'Excluir'}
+            </Button>
+          </div>
         </div>
       )}
-    </Link>
+    </div>
   );
 
   // ============================================================================
@@ -354,7 +369,7 @@ export function TurmasPage() {
         {turmas.length === 0 && (
           <div className="text-center py-16">
             <h3 className="text-xl font-medium text-gray-900 mb-2">
-              Bem-vindo ao EVOLUA!
+              Bem-vindo ao e-volua!
             </h3>
             <p className="text-gray-600 mb-6">
               {user?.categoria === 'aluno' 

@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Diagnóstico Detalhado do Erro de Criação de Conta
+-- e-volua - Diagnóstico Detalhado do Erro de Criação de Conta
 -- ============================================================================
 
 -- 1. Verificar se o trigger foi criado corretamente

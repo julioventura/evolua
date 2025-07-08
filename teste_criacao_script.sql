@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Teste de Criação de Turma (Sem Autenticação)
+-- e-volua - Teste de Criação de Turma (Sem Autenticação)
 -- ============================================================================
 
 -- Usar o primeiro usuário disponível como professor

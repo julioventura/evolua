@@ -1,5 +1,5 @@
 // ============================================================================
-// EVOLUA - Componente de Gerenciamento de Membros (Versão Melhorada)
+// e-volua - Componente de Gerenciamento de Membros (Versão Melhorada)
 // ============================================================================
 
 import { useState } from 'react';

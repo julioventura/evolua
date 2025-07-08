@@ -1,5 +1,5 @@
 // ============================================================================
-// EVOLUA - Modal de Confirmação de Cadastro de Usuário
+// e-volua - Modal de Confirmação de Cadastro de Usuário
 // ============================================================================
 
 import { useState } from 'react';

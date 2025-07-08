@@ -1,5 +1,5 @@
 // ============================================================================
-// EVOLUA - Componente de Gerenciamento de Membros (Versão Melhorada)
+// e-volua - Componente de Gerenciamento de Membros (Versão Melhorada)
 // ============================================================================
 
 import { useState } from 'react';
@@ -459,26 +459,6 @@ export function MembrosManager({
                       </span>
                     </div>
                   </div>
-                        </span>
-                      </div>
-                      <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full 
-                                    border-3 border-white dark:border-gray-800 flex items-center justify-center shadow-md">
-                        <svg className="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-                        </svg>
-                      </div>
-                    </div>
-                    <div>
-                      <p className="font-bold text-gray-900 dark:text-white text-lg">
-                        {membro.user?.nome || 'Nome não disponível'}
-                      </p>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-                                     bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 mt-1">
-                        👨‍🎓 Aluno
-                      </span>
-                    </div>
-                  </div>
-                  
                   {canManage && (
                     <div className="flex items-center gap-2">
                       {isProfessor && (
@@ -495,7 +475,6 @@ export function MembrosManager({
                           <option value="professor">👨‍🏫 Professor</option>
                         </select>
                       )}
-                      
                       <Button
                         onClick={() => handleRemoverMembro(membro.user_id)}
                         variant="outline"
@@ -515,7 +494,6 @@ export function MembrosManager({
                 </div>
               </div>
             ))}
-            
             {alunos.length === 0 && (
               <div className="col-span-full text-center py-16 text-gray-500 dark:text-gray-400 
                             bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-800/50 dark:to-blue-900/20 

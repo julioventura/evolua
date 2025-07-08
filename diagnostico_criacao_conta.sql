@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Diagnóstico Rápido do Erro de Criação de Conta
+-- e-volua - Diagnóstico Rápido do Erro de Criação de Conta
 -- ============================================================================
 
 -- 1. Verificar se a tabela profiles existe

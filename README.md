@@ -1,4 +1,4 @@
-# EVOLUA - Avaliação de Desempenho na Prática de Alunos
+# e-volua - Avaliação de Desempenho na Prática de Alunos
 
 Uma plataforma moderna e intuitiva para avaliação de desempenho de alunos em aulas práticas, permitindo acompanhamento detalhado do progresso e desenvolvimento de habilidades.
 

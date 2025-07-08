@@ -1,6 +1,6 @@
 @echo off
 echo =============================================
-echo  EVOLUA - Build para Producao
+echo  e-volua - Build para Producao
 echo  Destino: dentistas.com.br/evolua
 echo =============================================
 echo.

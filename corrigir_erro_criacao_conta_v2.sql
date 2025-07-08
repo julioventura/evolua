@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Solução Corrigida para Erro de Criação de Conta
+-- e-volua - Solução Corrigida para Erro de Criação de Conta
 -- ============================================================================
 
 -- 1. Verificar se há trigger para criação automática de profiles

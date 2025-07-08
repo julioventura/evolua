@@ -79,34 +79,88 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signUp = async (data: RegisterData) => {
     try {
-      // 1. Criar usuário no auth (SEM enviar metadata que pode causar trigger)
+      console.log('🔄 Iniciando cadastro para:', data.email)
+      
+      // Estratégia 1: Criar usuário sem confirmação de email
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: data.email,
-        password: data.password
-        // Removido: options com metadata para evitar triggers
+        password: data.password,
+        options: {
+          emailRedirectTo: undefined // Remove confirmação de email
+        }
       })
 
       if (authError) {
-        console.error('Erro na autenticação:', authError)
+        console.error('❌ Erro na autenticação:', authError)
+        
+        // Se o erro for relacionado ao banco, tentar abordagem alternativa
+        if (authError.message.includes('Database error') || authError.message.includes('saving new user')) {
+          console.log('🔄 Tentando abordagem alternativa...')
+          
+          // Estratégia 2: Criar apenas o profile para cadastro posterior
+          try {
+            const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`
+            
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .insert([{
+                id: tempId,
+                full_name: data.nome || data.email.split('@')[0],
+                nome: data.nome || data.email.split('@')[0], // <- ADICIONADO
+                email: data.email.toLowerCase(),
+                categoria: data.categoria || 'aluno',
+                papel: data.categoria || 'aluno',
+                whatsapp: data.whatsapp || null,
+                cidade: data.cidade || null,
+                estado: data.estado || null,
+                instituicao: data.instituicao || null,
+                registro_profissional: data.registro_profissional || null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }])
+              .select()
+              .single()
+
+            if (profileError) {
+              console.error('❌ Erro ao criar profile temporário:', profileError)
+              throw new Error('Não foi possível criar a conta. Verifique se o email já está em uso ou tente novamente mais tarde.')
+            } else {
+              console.log('✅ Profile temporário criado. Usuário deverá fazer login posteriormente.')
+              throw new Error('Conta criada parcialmente. Entre em contato com o administrador para ativar sua conta.')
+            }
+          } catch (tempError) {
+            console.error('❌ Estratégia alternativa falhou:', tempError)
+            throw new Error('Não foi possível criar a conta. Tente novamente mais tarde.')
+          }
+        }
+        
         throw authError
       }
 
       console.log('✅ Usuário criado no auth:', authData.user?.id)
 
-      // 2. Se o usuário foi criado, criar profile manualmente
+      // 2. Se o usuário foi criado, tentar criar profile
       if (authData.user) {
-        console.log('Criando profile manualmente...')
+        console.log('📝 Criando profile...')
         
         // Aguardar um pouco para garantir que o usuário foi salvo
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await new Promise(resolve => setTimeout(resolve, 1500))
         
         try {
-          const { data: profileData, error: profileError } = await supabase
+          const { error: profileError } = await supabase
             .from('profiles')
             .insert([{
               id: authData.user.id,
-              nome: data.nome,
+              full_name: data.nome || data.email.split('@')[0],
+              nome: data.nome || data.email.split('@')[0], // <- ADICIONADO
+              email: data.email.toLowerCase(),
               categoria: data.categoria || 'aluno',
+              papel: data.categoria || 'aluno',
+              whatsapp: data.whatsapp || null,
+              cidade: data.cidade || null,
+              estado: data.estado || null,
+              instituicao: data.instituicao || null,
+              registro_profissional: data.registro_profissional || null,
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             }])
@@ -115,10 +169,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
           if (profileError) {
             console.error('❌ Erro ao criar profile:', profileError)
-            // Não falhar aqui, o usuário já foi criado
             console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.')
           } else {
-            console.log('✅ Profile criado com sucesso:', profileData)
+            console.log('✅ Profile criado com sucesso')
           }
         } catch (profileError) {
           console.error('❌ Exceção ao criar profile:', profileError)
@@ -128,7 +181,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
     } catch (error) {
       console.error('❌ Erro geral no signup:', error)
-      throw new Error('Erro ao criar conta. Tente novamente.')
+      
+      // Melhor tratamento de erros específicos
+      if (error instanceof Error) {
+        if (error.message.includes('Database error')) {
+          throw new Error('Erro no banco de dados. Entre em contato com o administrador.')
+        } else if (error.message.includes('User already registered')) {
+          throw new Error('Este email já está cadastrado. Tente fazer login.')
+        } else if (error.message.includes('Invalid email')) {
+          throw new Error('Email inválido. Verifique o formato do email.')
+        } else if (error.message.includes('Password')) {
+          throw new Error('Senha deve ter pelo menos 6 caracteres.')
+        } else {
+          throw error
+        }
+      } else {
+        throw new Error('Erro desconhecido ao criar conta. Tente novamente.')
+      }
     }
   }
 

@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Adicionar Colunas na Tabela Profiles
+-- e-volua - Adicionar Colunas na Tabela Profiles
 -- ============================================================================
 
 -- Adicionar colunas necessárias na tabela profiles

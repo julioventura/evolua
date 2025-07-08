@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Desabilitar RLS para Fase de Testes
+-- e-volua - Desabilitar RLS para Fase de Testes
 -- ============================================================================
 
 -- 1. Desabilitar RLS na tabela profiles

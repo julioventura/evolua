@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Teste da Nova Funcionalidade de Cadastro Automático
+-- e-volua - Teste da Nova Funcionalidade de Cadastro Automático
 -- ============================================================================
 
 -- Verificar se existem usuários de teste

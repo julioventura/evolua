@@ -1,4 +1,4 @@
-# 🚀 **EVOLUA - Implementação do Sistema de Turmas e Avaliações**
+# 🚀 **e-volua - Implementação do Sistema de Turmas e Avaliações**
 
 ## 📊 **Proposta de Modelagem de Dados Implementada**
 
@@ -178,4 +178,4 @@ npm run build
 - Arquitetura escalável
 - Base sólida para funcionalidades avançadas
 
-**O sistema EVOLUA agora possui um sistema de turmas completo, moderno e seguro, pronto para uso em produção! 🌟**
+**O sistema e-volua agora possui um sistema de turmas completo, moderno e seguro, pronto para uso em produção! 🌟**

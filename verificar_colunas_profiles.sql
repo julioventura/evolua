@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Verificar Estrutura Real da Tabela Profiles
+-- e-volua - Verificar Estrutura Real da Tabela Profiles
 -- ============================================================================
 
 -- 1. Verificar todas as colunas da tabela profiles

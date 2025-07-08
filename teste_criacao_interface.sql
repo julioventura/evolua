@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Teste de Criação de Turma via Interface
+-- e-volua - Teste de Criação de Turma via Interface
 -- ============================================================================
 
 -- Verificar usuário atual autenticado

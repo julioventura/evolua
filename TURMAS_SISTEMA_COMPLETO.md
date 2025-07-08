@@ -1,4 +1,4 @@
-# EVOLUA - Sistema de Turmas - Implementação Completa
+# e-volua - Sistema de Turmas - Implementação Completa
 
 ## ✅ Funcionalidades Implementadas
 
@@ -81,7 +81,7 @@ src/
 ## 🚀 Como Usar
 
 ### 1. Acessar o Sistema
-- Faça login no sistema EVOLUA
+- Faça login no sistema e-volua
 - Navegue para a seção "Turmas" no menu
 
 ### 2. Criar uma Turma (Professor)

@@ -11,7 +11,10 @@ export const RegisterPage: React.FC = () => {
     email: '',
     password: '',
     nome: '',
-    categoria: 'aluno'
+    categoria: 'aluno',
+    whatsapp: '',
+    cidade: '',
+    estado: ''
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -187,6 +190,51 @@ export const RegisterPage: React.FC = () => {
                 <option value="admin">Administrador</option>
                 <option value="outro">Outro</option>
               </select>
+            </div>
+
+            <div>
+              <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                WhatsApp (opcional)
+              </label>
+              <Input
+                id="whatsapp"
+                name="whatsapp"
+                type="tel"
+                value={formData.whatsapp}
+                onChange={handleChange}
+                placeholder="(11) 99999-9999"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="cidade" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Cidade (opcional)
+              </label>
+              <Input
+                id="cidade"
+                name="cidade"
+                type="text"
+                value={formData.cidade}
+                onChange={handleChange}
+                placeholder="Digite sua cidade"
+                className="mt-1"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="estado" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                Estado (opcional)
+              </label>
+              <Input
+                id="estado"
+                name="estado"
+                type="text"
+                value={formData.estado}
+                onChange={handleChange}
+                placeholder="Digite seu estado"
+                className="mt-1"
+              />
             </div>
           </div>
 

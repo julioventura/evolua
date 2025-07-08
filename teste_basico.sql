@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA -         END IF;
+-- e-volua -         END IF;
     ELSE
         RAISE NOTICE 'Nenhum usuário encontrado na tabela profiles';
     END IF;

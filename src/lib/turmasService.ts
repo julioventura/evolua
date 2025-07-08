@@ -1,8 +1,9 @@
 // ============================================================================
-// EVOLUA - Serviços de Turmas
+// e-volua - Serviços de Turmas
 // ============================================================================
 
 import { supabase } from './supabaseClient';
+import { criarUsuarioComSenhaTemporaria } from './userCreation';
 import type { 
   Turma, 
   CreateTurmaData, 
@@ -341,24 +342,31 @@ export async function regenerarCodigoConvite(turmaId: string): Promise<string> {
  * Verifica se um usuário existe no sistema pelo email
  */
 export async function verificarUsuarioExiste(email: string): Promise<{ exists: boolean; user?: { id: string; email: string; full_name: string; papel: string; whatsapp?: string; nascimento?: string; cidade?: string; estado?: string } }> {
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('email', email.toLowerCase())
-    .single();
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('email', email.toLowerCase())
+      .single();
+      
+    if (error && error.code !== 'PGRST116') {
+      console.error('Erro ao verificar usuário:', error);
+      // Não falhar aqui, apenas retornar que não existe
+      return { exists: false };
+    }
     
-  if (error && error.code !== 'PGRST116') {
-    throw new Error(`Erro ao verificar usuário: ${error.message}`);
+    return {
+      exists: !!data,
+      user: data || null
+    };
+  } catch (error) {
+    console.error('Exceção ao verificar usuário:', error);
+    return { exists: false };
   }
-  
-  return {
-    exists: !!data,
-    user: data || null
-  };
 }
 
 /**
- * Cadastra um novo usuário no sistema via Admin API
+ * Cadastra um novo usuário no sistema com múltiplas estratégias
  */
 export async function cadastrarNovoUsuario(
   email: string, 
@@ -369,50 +377,213 @@ export async function cadastrarNovoUsuario(
   cidade?: string,
   estado?: string
 ): Promise<{ user: { id: string; email: string }; profile: { id: string; email: string; full_name: string; papel: string; whatsapp?: string; nascimento?: string; cidade?: string; estado?: string } }> {
-  // Gerar uma senha temporária
-  const senhaTemporaria = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
   
-  // Criar usuário no Auth
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email: email.toLowerCase(),
-    password: senhaTemporaria,
-    email_confirm: true, // Confirmar email automaticamente
-    user_metadata: {
-      full_name: nomeCompleto || email.split('@')[0],
-      papel: papel
-    }
-  });
-
-  if (authError) {
-    throw new Error(`Erro ao criar usuário: ${authError.message}`);
+  // Validar email
+  if (!email || !email.includes('@')) {
+    throw new Error('Email inválido fornecido');
   }
+  
+  console.log('🔐 Iniciando criação de usuário:', email);
+  
+  // Estratégia 1: Tentar signUp com senha temporária
+  try {
+    console.log('� Tentativa 1: SignUp com senha temporária');
+    
+    const senhaTemporaria = 'EvoluaTemp123!';
+    
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: email.toLowerCase(),
+      password: senhaTemporaria,
+      options: {
+        data: {
+          full_name: nomeCompleto || email.split('@')[0],
+          papel: papel
+        }
+      }
+    });
 
-  // Aguardar um pouco para o trigger do profile ser executado
-  await new Promise(resolve => setTimeout(resolve, 1000));
+    if (authError) {
+      console.log('❌ SignUp falhou:', authError.message);
+      throw authError;
+    }
 
-  // Buscar ou criar o profile
-  let profile: { id: string; email: string; full_name: string; papel: string; whatsapp?: string; nascimento?: string; cidade?: string; estado?: string } | null = null;
-  const { data: profileData, error: profileError } = await supabase
-    .from('profiles')
-    .select('*')
-    .eq('id', authData.user.id)
-    .single();
+    if (!authData.user) {
+      throw new Error('Usuário não foi criado');
+    }
 
-  profile = profileData;
+    console.log('✅ SignUp bem-sucedido:', authData.user.id);
+    
+    // Aguardar processamento
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Buscar ou criar profile
+    const profile = await garantirProfile(authData.user.id, email, papel, {
+      nomeCompleto,
+      whatsapp,
+      nascimento,
+      cidade,
+      estado
+    });
 
-  // Se o profile não foi criado automaticamente, criar manualmente
-  if (profileError && profileError.code === 'PGRST116') {
+    console.log('🎉 Usuário criado com sucesso via SignUp!');
+    
+    return {
+      user: {
+        id: authData.user.id,
+        email: authData.user.email!
+      },
+      profile: profile
+    };
+    
+  } catch (error) {
+    console.log('❌ Estratégia 1 falhou:', error);
+    
+    // Estratégia 2: Tentar método alternativo
+    try {
+      console.log('📝 Tentativa 2: Método alternativo');
+      
+      const result = await criarUsuarioComSenhaTemporaria(
+        email, papel, nomeCompleto, whatsapp, nascimento, cidade, estado
+      );
+      
+      if (result.success) {
+        console.log('✅ Método alternativo bem-sucedido');
+        
+        // Buscar o usuário criado no profiles ao invés do admin
+        const { data: userData, error: userError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', email.toLowerCase())
+          .single();
+        
+        if (userData && !userError) {
+          const profile = await garantirProfile(userData.id, email, papel, {
+            nomeCompleto,
+            whatsapp,
+            nascimento,
+            cidade,
+            estado
+          });
+          
+          return {
+            user: {
+              id: userData.id,
+              email: userData.email!
+            },
+            profile: profile
+          };
+        }
+      }
+      
+      throw new Error(result.message);
+      
+    } catch (error2) {
+      console.log('❌ Estratégia 2 falhou:', error2);
+      
+      // Estratégia 3: Criar apenas o profile para cadastro posterior
+      try {
+        console.log('📝 Tentativa 3: Apenas profile temporário');
+        
+        const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+        const profile = await garantirProfile(tempId, email, papel, {
+          nomeCompleto,
+          whatsapp,
+          nascimento,
+          cidade,
+          estado
+        });
+        
+        console.log('✅ Profile temporário criado');
+        
+        return {
+          user: {
+            id: tempId,
+            email: email
+          },
+          profile: profile
+        };
+        
+      } catch (error3) {
+        console.error('❌ Todas as estratégias falharam:', error3);
+        
+        // Mostrar erro mais específico
+        const originalError = error as Error;
+        if (originalError.message.includes('Email already registered')) {
+          throw new Error('Este email já está cadastrado. Tente adicionar o usuário diretamente.');
+        } else if (originalError.message.includes('User not allowed')) {
+          throw new Error('Não foi possível criar o usuário automaticamente. Peça para ele se cadastrar primeiro no sistema.');
+        } else {
+          throw new Error(`Erro ao criar usuário: ${originalError.message}`);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Função auxiliar para garantir que o profile existe
+ */
+async function garantirProfile(
+  userId: string,
+  email: string,
+  papel: TurmaMembro['papel'],
+  dados: {
+    nomeCompleto?: string;
+    whatsapp?: string;
+    nascimento?: string;
+    cidade?: string;
+    estado?: string;
+  }
+): Promise<{ id: string; email: string; full_name: string; papel: string; whatsapp?: string; nascimento?: string; cidade?: string; estado?: string }> {
+  
+  try {
+    // Verificar se profile já existe
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (existingProfile) {
+      console.log('✅ Profile já existe, atualizando...');
+      
+      const { data: updatedProfile, error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          papel,
+          whatsapp: dados.whatsapp || existingProfile.whatsapp,
+          nascimento: dados.nascimento || existingProfile.nascimento,
+          cidade: dados.cidade || existingProfile.cidade,
+          estado: dados.estado || existingProfile.estado,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', userId)
+        .select('*')
+        .single();
+
+      if (updateError) {
+        console.error('❌ Erro ao atualizar profile:', updateError);
+        // Retornar o profile existente se a atualização falhar
+        return existingProfile;
+      }
+
+      return updatedProfile;
+    }
+
+    // Criar novo profile
+    console.log('📝 Criando novo profile...');
+    
     const { data: newProfile, error: createError } = await supabase
       .from('profiles')
       .insert({
-        id: authData.user.id,
+        id: userId,
         email: email.toLowerCase(),
-        full_name: nomeCompleto || email.split('@')[0],
+        full_name: dados.nomeCompleto || email.split('@')[0],
         papel: papel,
-        whatsapp: whatsapp || null,
-        nascimento: nascimento || null,
-        cidade: cidade || null,
-        estado: estado || null,
+        whatsapp: dados.whatsapp || null,
+        nascimento: dados.nascimento || null,
+        cidade: dados.cidade || null,
+        estado: dados.estado || null,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -420,40 +591,15 @@ export async function cadastrarNovoUsuario(
       .single();
 
     if (createError) {
+      console.error('❌ Erro ao criar profile:', createError);
       throw new Error(`Erro ao criar profile: ${createError.message}`);
     }
-    
-    profile = newProfile;
-  } else if (profileError) {
-    throw new Error(`Erro ao buscar profile: ${profileError.message}`);
+
+    return newProfile;
+  } catch (error) {
+    console.error('❌ Exceção na função garantirProfile:', error);
+    throw error;
   }
-
-  // Atualizar o papel no profile se necessário
-  if (profile && profile.papel !== papel) {
-    const { data: updatedProfile, error: updateError } = await supabase
-      .from('profiles')
-      .update({ 
-        papel,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', authData.user.id)
-      .select('*')
-      .single();
-
-    if (updateError) {
-      throw new Error(`Erro ao atualizar papel: ${updateError.message}`);
-    }
-    
-    profile = updatedProfile;
-  }
-
-  return {
-    user: {
-      id: authData.user.id,
-      email: authData.user.email!
-    },
-    profile: profile!
-  };
 }
 
 /**

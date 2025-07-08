@@ -1,4 +1,4 @@
-# ✅ EVOLUA CONFIGURADO PARA DENTISTAS.COM.BR/EVOLUA
+# ✅ e-volua CONFIGURADO PARA DENTISTAS.COM.BR/e-volua
 
 ## 🎯 **CONFIGURAÇÕES APLICADAS:**
 
@@ -92,7 +92,7 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 - ✅ **Build bem-sucedido:** 390KB gzipped
 - ✅ **Paths corretos:** `/evolua/assets/...`
-- ✅ **Título atualizado:** "EVOLUA - Avaliação de Desempenho"
+- ✅ **Título atualizado:** "e-volua - Avaliação de Desempenho"
 - ✅ **.htaccess incluído:** Suporte a SPA routing
 - ✅ **Meta tags:** PT-BR, description SEO
 
@@ -114,4 +114,4 @@ VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 - Rotas protegidas
 - Headers de segurança (.htaccess)
 
-**Sistema EVOLUA configurado e otimizado para dentistas.com.br/evolua/** 🚀
+**Sistema e-volua configurado e otimizado para dentistas.com.br/evolua/** 🚀

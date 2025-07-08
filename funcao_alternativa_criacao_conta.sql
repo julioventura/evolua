@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Versão Alternativa da Função (Compatibilidade)
+-- e-volua - Versão Alternativa da Função (Compatibilidade)
 -- ============================================================================
 
 -- Desabilitar RLS (garantir que está desabilitado)

@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Adicionar Coluna Email e Corrigir Trigger
+-- e-volua - Adicionar Coluna Email e Corrigir Trigger
 -- ============================================================================
 
 -- 1. Adicionar colunas necessárias se não existirem

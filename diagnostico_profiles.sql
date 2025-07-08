@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Diagnóstico da tabela profiles
+-- e-volua - Diagnóstico da tabela profiles
 -- ============================================================================
 
 -- Verificar estrutura da tabela profiles

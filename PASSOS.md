@@ -1,6 +1,6 @@
-# EVOLUA - Roadmap de Desenvolvimento
+# e-volua - Roadmap de Desenvolvimento
 
-Este arquivo contém o planejamento e acompanhamento do desenvolvimento do projeto EVOLUA.
+Este arquivo contém o planejamento e acompanhamento do desenvolvimento do projeto e-volua.
 
 ## 🎯 Status Atual do Projeto
 

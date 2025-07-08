@@ -1,4 +1,4 @@
-# Configuração do Supabase para EVOLUA
+# Configuração do Supabase para e-volua
 
 ## 📋 Pré-requisitos
 

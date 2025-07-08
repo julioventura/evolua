@@ -1,5 +1,5 @@
 -- ============================================================================
--- EVOLUA - Teste Conservador (apenas dados existentes)
+-- e-volua - Teste Conservador (apenas dados existentes)
 -- ============================================================================
 
 -- Verificar estrutura das tabelas turmas
