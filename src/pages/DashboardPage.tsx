@@ -1,238 +1,247 @@
-import React, { useState, useEffect } from 'react'
-import { useAuth } from '../contexts/AuthContext'
-import { getDashboardStats, type DashboardStats } from '../lib/turmasService'
-import { LoadingSpinner } from '../components/ui/LoadingSpinner'
+import React, { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import { 
+  getDashboardStats, 
+  getAvaliacoes, 
+  getTurmasParaDashboard, 
+  getUsuariosPorCategoria 
+} from '../lib/turmasService';
+import type { DashboardStats, Avaliacao, Usuario, ReferenciaLink } from '../lib/turmasService';
+import type { Turma } from '../types';
+import { 
+  UsersIcon, 
+  BookOpenIcon, 
+  AcademicCapIcon, 
+  ClipboardDocumentCheckIcon as ClipboardCheckIcon, 
+  UserGroupIcon, 
+  ShieldCheckIcon,
+  CogIcon,
+  DocumentChartBarIcon as DocumentReportIcon,
+  ClockIcon,
+  LinkIcon,
+  DocumentTextIcon,
+  FolderIcon
+} from '@heroicons/react/24/outline';
+import { LoadingSpinner } from '../components/ui/LoadingSpinner';
+import { Modal } from '../components/ui/Modal';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
-export const DashboardPage: React.FC = () => {
-  const authContext = useAuth()
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+const DashboardPage: React.FC = () => {
+  const authContext = useAuth();
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
-  // useEffect deve ser chamado sempre, antes de qualquer return condicional
-  useEffect(() => {
-    const loadStats = async () => {
-      if (!authContext?.user) return
-      
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalData, setModalData] = useState<Avaliacao[] | Turma[] | Usuario[] | null>(null);
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState<string | null>(null);
+
+  const loadStats = useCallback(async () => {
+    if (authContext.user) {
       try {
-        setLoading(true)
-        setError(null)
-        const dashboardStats = await getDashboardStats(authContext.user.id, authContext.user.categoria)
-        setStats(dashboardStats)
-      } catch (err) {
-        console.error('Erro ao carregar estatísticas:', err)
-        setError(err instanceof Error ? err.message : 'Erro ao carregar dados')
+        setLoading(true);
+        const userCategoria = authContext.user.app_metadata?.categoria || 'aluno';
+        const data = await getDashboardStats(authContext.user.id, userCategoria);
+        setStats(data);
+      } catch (err: any) {
+        setError('Falha ao carregar as estatísticas. Tente novamente mais tarde.');
+        // Define stats com valores padrão em caso de erro para não quebrar a UI
+        setStats({
+          turmasUsuario: 0, turmasTotal: 0, alunosTotal: 0, professoresTotal: 0,
+          monitoresTotal: 0, adminsTotal: 0, avaliacoesRealizadas: 0,
+          referenciaLinks: [], atividadesRecentes: []
+        });
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
+  }, [authContext.user]);
 
-    loadStats()
-  }, [authContext?.user])
+  useEffect(() => {
+    if (authContext.user) {
+        loadStats();
+    } else {
+        setLoading(false);
+        setError("Usuário não autenticado.");
+    }
+  }, [loadStats, authContext.user]);
 
-  if (!authContext) {
+  const handleCardClick = async (dataType: string) => {
+    if (!authContext.user) {
+      setError("Sessão expirada. Por favor, faça login novamente.");
+      return;
+    }
+
+    setModalTitle(`Lista de ${dataType}`);
+    setIsModalOpen(true);
+    setModalLoading(true);
+    setModalError(null);
+    setModalData(null);
+
+    try {
+      const userId = authContext.user.id;
+      const userCategoria = authContext.user.app_metadata?.categoria || 'aluno';
+      let data;
+
+      switch (dataType) {
+        case 'Avaliações Realizadas':
+          data = await getAvaliacoes(userId);
+          break;
+        case 'Minhas Turmas':
+        case 'Turmas':
+          data = await getTurmasParaDashboard(userId, userCategoria);
+          break;
+        case 'Alunos':
+          data = await getUsuariosPorCategoria('aluno');
+          break;
+        case 'Professores':
+          data = await getUsuariosPorCategoria('professor');
+          break;
+        case 'Monitores':
+          data = await getUsuariosPorCategoria('monitor');
+          break;
+        case 'Admins':
+          data = await getUsuariosPorCategoria('admin');
+          break;
+        default:
+          throw new Error(`Tipo de dado desconhecido: ${dataType}`);
+      }
+      setModalData(data);
+    } catch (err: any) {
+      setModalError(`Falha ao carregar dados: ${err.message}`);
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  const renderModalContent = () => {
+    if (modalLoading) return <LoadingSpinner />;
+    if (modalError) return <p className="text-red-500 dark:text-red-400">{modalError}</p>;
+    if (!modalData || modalData.length === 0) return <p className="text-gray-500 dark:text-gray-400">Nenhum dado encontrado.</p>;
+
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner message="Carregando..." />
-      </div>
-    )
-  }
-  
-  const { user } = authContext
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner message="Carregando..." />
-      </div>
-    )
-  }
+      <ul className="space-y-3 max-h-96 overflow-y-auto pr-2">
+        {modalData.map((item: any) => (
+          <li key={item.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600">
+            <p className="font-semibold text-gray-800 dark:text-gray-100">{item.nome || item.titulo}</p>
+            {item.email && <p className="text-sm text-gray-600 dark:text-gray-300">{item.email}</p>}
+            {item.created_at && <p className="text-sm text-gray-500 dark:text-gray-400">Criado em: {format(new Date(item.created_at), 'dd/MM/yyyy', { locale: ptBR })}</p>}
+            {item.data_limite && <p className="text-sm text-gray-500 dark:text-gray-400">Data Limite: {format(new Date(item.data_limite), 'dd/MM/yyyy', { locale: ptBR })}</p>}
+            {item.turma_nome && <p className="text-xs text-gray-500 dark:text-gray-400">Turma: {item.turma_nome}</p>}
+          </li>
+        ))}
+      </ul>
+    );
+  };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <LoadingSpinner message="Carregando estatísticas..." />
-      </div>
-    )
+    return <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900"><LoadingSpinner /></div>;
   }
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700"
-          >
-            Tentar Novamente
-          </button>
-        </div>
-      </div>
-    )
+  if (error || !stats) {
+    return <div className="text-center text-red-500 dark:text-red-400 mt-10 p-4">{error || 'Não foi possível carregar os dados do dashboard.'}</div>;
   }
+
+  const userCategoria = authContext.user?.app_metadata?.categoria || 'aluno';
+  const turmasLabel = userCategoria === 'professor' || userCategoria === 'admin' ? 'Minhas Turmas' : 'Turmas';
+
+  const statCards = [
+    { title: 'Avaliações Realizadas', value: stats.avaliacoesRealizadas, icon: ClipboardCheckIcon, color: 'blue' },
+    { title: turmasLabel, value: stats.turmasUsuario, icon: BookOpenIcon, color: 'green' },
+    { title: 'Alunos', value: stats.alunosTotal, icon: UsersIcon, color: 'yellow' },
+    { title: 'Professores', value: stats.professoresTotal, icon: AcademicCapIcon, color: 'purple' },
+    { title: 'Monitores', value: stats.monitoresTotal, icon: UserGroupIcon, color: 'pink' },
+    { title: 'Admins', value: stats.adminsTotal, icon: ShieldCheckIcon, color: 'red' },
+  ];
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-300">
-            Bem-vindo, {user.nome} ({user.categoria})
-          </p>
-        </div>
+    <div className="p-4 md:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-gray-200">
+      <h1 className="text-3xl font-bold dark:text-white mb-2">Dashboard</h1>
+      <p className="text-gray-600 dark:text-gray-300 mb-8">Bem-vindo(a) de volta, {authContext.user?.user_metadata?.full_name || 'Usuário'}.</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Card de Estatísticas */}
-          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                      Avaliações Realizadas
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                      {stats?.avaliacoesRealizadas || 0}
-                    </dd>
-                  </dl>
-                </div>
+      {/* Seção de Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {statCards.map(card => (
+          <div 
+            key={card.title} 
+            onClick={() => handleCardClick(card.title)} 
+            className={`bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-${card.color}-500`}
+          >
+            <div className="flex items-center">
+              <div className={`p-3 rounded-full bg-${card.color}-100 dark:bg-gray-700 mr-4`}>
+                <card.icon className={`h-7 w-7 text-${card.color}-600 dark:text-${card.color}-300`} />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{card.title}</p>
+                <p className="text-3xl font-bold dark:text-white">{card.value ?? '0'}</p>
               </div>
             </div>
           </div>
-
-          {/* Card de Turmas */}
-          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                  </svg>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                      {user.categoria === 'professor' ? 'Turmas Criadas' : 'Turmas Participando'}
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                      {stats?.turmasUsuario || 0} / {stats?.turmasTotal || 0}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Card de Alunos */}
-          <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-primary-600 dark:text-primary-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                  </svg>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                      Alunos
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                      {stats?.alunosTotal || 0}
-                    </dd>
-                  </dl>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Seção de Ações Rápidas */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Ações</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {user.categoria === 'professor' ? (
-              <>
-
-                <button className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <svg className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <p className="font-medium text-gray-900 dark:text-white">Nova Avaliação</p>
-                  </div>
-                </button>
-
-                <button className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <svg className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <p className="font-medium text-gray-900 dark:text-white">Relatórios</p>
-                  </div>
-                </button>
-
-                <button className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <svg className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                    </svg>
-                    <p className="font-medium text-gray-900 dark:text-white">Gerenciar Alunos</p>
-                  </div>
-                </button>
-                
-              </>
-            ) : (
-              <>
-                <button className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <svg className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                    <p className="font-medium text-gray-900 dark:text-white">Minhas Avaliações</p>
-                  </div>
-                </button>
-                <button className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <svg className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                    <p className="font-medium text-gray-900 dark:text-white">Progresso</p>
-                  </div>
-                </button>
-                <button className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow border border-gray-200 dark:border-gray-700">
-                  <div className="text-center">
-                    <svg className="h-8 w-8 text-primary-600 dark:text-primary-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
-                    </svg>
-                    <p className="font-medium text-gray-900 dark:text-white">Turmas</p>
-                  </div>
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Seção de Atividades Recentes */}
-        <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-4">Histórico</h2>
-          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-              <svg className="h-12 w-12 mx-auto mb-4 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <p>Nenhuma ação registrada</p>
-            </div>
-          </div>
-        </div>
-
+        ))}
       </div>
+
+      {/* Seção de Ações Rápidas e Histórico */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Ações Rápidas e Links Úteis */}
+        <div className="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4 dark:text-white">Ações Rápidas</h2>
+          <div className="space-y-3">
+            <button className="w-full flex items-center justify-center p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-300 font-semibold">
+              <DocumentReportIcon className="h-5 w-5 mr-2" />
+              Gerar Relatório
+            </button>
+            <button className="w-full flex items-center justify-center p-3 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors duration-300 font-semibold">
+              <CogIcon className="h-5 w-5 mr-2" />
+              Gerenciar Alunos
+            </button>
+          </div>
+
+          <div className="mt-8">
+            <h3 className="text-lg font-bold mb-4 dark:text-white">Links Úteis</h3>
+            <div className="space-y-3">
+              {stats.referenciaLinks?.length ? stats.referenciaLinks.map((link: ReferenciaLink) => (
+                <a 
+                  key={link.id} 
+                  href={link.url} 
+                  target="_blank" 
+                  rel="noopener noreferrer" 
+                  className="w-full flex items-center p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-300 font-medium"
+                >
+                  {link.tipo === 'pdf' && <DocumentTextIcon className="h-5 w-5 mr-3 text-red-500" />}
+                  {link.tipo === 'drive' && <FolderIcon className="h-5 w-5 mr-3 text-yellow-500" />}
+                  {!['pdf', 'drive'].includes(link.tipo) && <LinkIcon className="h-5 w-5 mr-3 text-blue-500" />}
+                  {link.titulo}
+                </a>
+              )) : <p className="text-gray-500 dark:text-gray-400">Nenhum link disponível.</p>}
+            </div>
+          </div>
+        </div>
+
+        {/* Histórico de Atividades */}
+        <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+          <h2 className="text-xl font-bold mb-4 dark:text-white">Histórico de Atividades</h2>
+          <ul className="space-y-4">
+            {stats.atividadesRecentes?.length ? stats.atividadesRecentes.map((act: any) => (
+              <li key={act.id} className="flex items-center">
+                <ClockIcon className="h-5 w-5 text-gray-400 mr-4" />
+                <div>
+                  <p className="font-medium dark:text-gray-200">{act.detalhes}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(act.data), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                </div>
+              </li>
+            )) : <p className="text-gray-500 dark:text-gray-400">Nenhuma atividade recente.</p>}
+          </ul>
+        </div>
+      </div>
+
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={modalTitle}>
+        {renderModalContent()}
+      </Modal>
     </div>
-  )
-}
+  );
+};
+
+export default DashboardPage;

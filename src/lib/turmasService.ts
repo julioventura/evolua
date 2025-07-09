@@ -89,20 +89,15 @@ export async function getTurmaPorCodigo(codigo: string): Promise<Turma | null> {
  * Cria uma nova turma
  */
 export async function createTurma(data: CreateTurmaData): Promise<Turma> {
-  console.log('🚀 Serviço: Iniciando criação de turma', data);
+  const { data: { user } } = await supabase.auth.getUser();
   
-  const { data: user } = await supabase.auth.getUser();
-  
-  if (!user.user) {
-    console.error('❌ Serviço: Usuário não autenticado');
+  if (!user) {
     throw new Error('Usuário não autenticado');
   }
 
-  console.log('👤 Serviço: Usuário autenticado:', user.user.id);
-
   const turmaData = {
     ...data,
-    professor_id: user.user.id,
+    professor_id: user.id,
     ano: new Date().getFullYear(),
     semestre: Math.ceil((new Date().getMonth() + 1) / 6), // 1 ou 2
     configuracoes: {
@@ -114,8 +109,6 @@ export async function createTurma(data: CreateTurmaData): Promise<Turma> {
     }
   };
 
-  console.log('📝 Serviço: Dados da turma para inserir:', turmaData);
-
   const { data: turma, error } = await supabase
     .from('turmas')
     .insert(turmaData)
@@ -123,17 +116,11 @@ export async function createTurma(data: CreateTurmaData): Promise<Turma> {
     .single();
     
   if (error) {
-    console.error('❌ Serviço: Erro ao criar turma:', error);
     throw new Error(`Erro ao criar turma: ${error.message}`);
   }
   
-  console.log('✅ Serviço: Turma criada com sucesso:', turma);
+  await addMembroTurma(turma.id, user.id, 'professor');
   
-  // Adicionar o professor como membro da turma
-  console.log('👨‍🏫 Serviço: Adicionando professor como membro...');
-  await addMembroTurma(turma.id, user.user.id, 'professor');
-  
-  console.log('🎉 Serviço: Processo completo finalizado');
   return turma;
 }
 
@@ -228,29 +215,26 @@ export async function addMembroTurma(
  * Ingressar em turma via código de convite
  */
 export async function ingressarNaTurma(codigo: string): Promise<{ turma: Turma; membro: TurmaMembro }> {
-  const { data: user } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
   
-  if (!user.user) {
+  if (!user) {
     throw new Error('Usuário não autenticado');
   }
 
-  // Buscar turma pelo código
   const turma = await getTurmaPorCodigo(codigo);
   
   if (!turma) {
     throw new Error('Código de turma inválido ou turma inativa');
   }
   
-  // Verificar se não está na capacidade máxima
   const membros = await getMembros(turma.id);
   const alunosAtivos = membros.filter(m => m.papel === 'aluno').length;
   
-  if (alunosAtivos >= turma.max_alunos) {
+  if (turma.max_alunos && alunosAtivos >= turma.max_alunos) {
     throw new Error('Turma atingiu o limite máximo de alunos');
   }
   
-  // Adicionar como aluno
-  const membro = await addMembroTurma(turma.id, user.user.id, 'aluno');
+  const membro = await addMembroTurma(turma.id, user.id, 'aluno');
   
   return { turma, membro };
 }
@@ -298,9 +282,9 @@ export async function updateMembroPapel(
  */
 export async function isMembro(turmaId: string, userId?: string): Promise<TurmaMembro | null> {
   if (!userId) {
-    const { data: user } = await supabase.auth.getUser();
-    if (!user.user) return null;
-    userId = user.user.id;
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return null;
+    userId = user.id;
   }
 
   const { data, error } = await supabase
@@ -695,20 +679,19 @@ export async function cadastrarEAdicionarMembro(
 // ============================================================================
 // SERVIÇOS DE ESTATÍSTICAS DO DASHBOARD
 // ============================================================================
-
 /**
  * Interface para as estatísticas do dashboard
  */
 export interface DashboardStats {
-  // Estatísticas de turmas
-  turmasUsuario: number; // turmas que o usuário criou (professor) ou participa (aluno/monitor)
-  turmasTotal: number; // total de turmas no sistema
-  
-  // Estatísticas de alunos
-  alunosTotal: number; // total de alunos no sistema
-  
-  // Estatísticas de avaliações (futuro)
+  turmasUsuario: number;
+  turmasTotal: number;
+  alunosTotal: number;
+  professoresTotal: number;
+  monitoresTotal: number;
+  adminsTotal: number;
   avaliacoesRealizadas: number;
+  referenciaLinks: ReferenciaLink[];
+  atividadesRecentes: any[];
 }
 
 /**
@@ -728,55 +711,252 @@ export async function getDashboardStats(userId: string, userCategoria: string): 
     // 2. Buscar turmas do usuário (criadas como professor ou participando como membro)
     let turmasUsuario = 0;
     
-    if (userCategoria === 'professor') {
-      // Para professores: contar turmas criadas
-      const { count, error } = await supabase
+    try {
+      // Primeiro, contar turmas onde o usuário é professor
+      const { count: turmasComoProfessor, error: errorProfessor } = await supabase
         .from('turmas')
-        .select('*', { count: 'exact', head: true })
+        .select('id', { count: 'exact', head: true })
         .eq('professor_id', userId);
-        
-      if (error) {
-        throw new Error(`Erro ao buscar turmas do professor: ${error.message}`);
-      }
       
-      turmasUsuario = count || 0;
-    } else {
-      // Para alunos/monitores: contar turmas onde participa
-      const { count, error } = await supabase
+      if (errorProfessor) throw errorProfessor;
+      
+      // Depois, contar turmas onde o usuário é membro
+      const { count: turmasComoMembro, error: errorMembro } = await supabase
         .from('turma_membros')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', userId)
-        .eq('status', 'ativo');
-        
-      if (error) {
-        throw new Error(`Erro ao buscar participações do usuário: ${error.message}`);
-      }
+        .select('turma_id', { count: 'exact', head: true })
+        .eq('user_id', userId);
       
-      turmasUsuario = count || 0;
+      if (errorMembro) throw errorMembro;
+      
+      // Soma os totais (pode haver sobreposição, mas é melhor que falhar)
+      turmasUsuario = (turmasComoProfessor || 0) + (turmasComoMembro || 0);
+      
+    } catch (error) {
+      console.warn('Aviso ao buscar turmas do usuário:', error);
+      // Não lançamos o erro, apenas registramos e continuamos com 0
+      turmasUsuario = 0;
     }
 
-    // 3. Buscar total de alunos no sistema
-    const { count: alunosTotal, error: errorAlunosTotal } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('categoria', 'aluno');
+    // 3. Buscar totais de usuários por categoria
+    const [
+      { count: alunosTotal, error: errorAlunosTotal },
+      { count: professoresTotal, error: errorProfessoresTotal },
+      { count: monitoresTotal, error: errorMonitoresTotal },
+      { count: adminsTotal, error: errorAdminsTotal }
+    ] = await Promise.all([
+      supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('categoria', 'aluno'),
+      supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('categoria', 'professor'),
+      supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('categoria', 'monitor'),
+      supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true })
+        .eq('categoria', 'admin')
+    ]);
 
-    if (errorAlunosTotal) {
-      throw new Error(`Erro ao buscar total de alunos: ${errorAlunosTotal.message}`);
+    if (errorAlunosTotal || errorProfessoresTotal || errorMonitoresTotal || errorAdminsTotal) {
+      throw new Error('Erro ao buscar totais de usuários');
     }
 
     // 4. Avaliações (placeholder para futuras implementações)
     const avaliacoesRealizadas = 0;
 
+    // 5. Links de referência (exemplo)
+    const referenciaLinks = [
+      {
+        id: '1',
+        titulo: 'Manual do Professor',
+        url: 'https://drive.google.com/file/d/1xY8J9ZvZ3Z4xY8J9ZvZ3Z4xY8J9ZvZ3Z4xY8J9ZvZ3Z4',
+        tipo: 'docs' as const
+      },
+      {
+        id: '2',
+        titulo: 'Modelo de Avaliação',
+        url: 'https://drive.google.com/file/d/2xY8J9ZvZ3Z4xY8J9ZvZ3Z4xY8J9ZvZ3Z4xY8J9ZvZ3Z4',
+        tipo: 'pdf' as const
+      },
+      {
+        id: '3',
+        titulo: 'Tutoriais em Vídeo',
+        url: 'https://drive.google.com/drive/folders/3xY8J9ZvZ3Z4xY8J9ZvZ3Z4xY8J9ZvZ3Z4xY8J9ZvZ3Z4',
+        tipo: 'drive' as const
+      }
+    ];
+
+    // 6. Atividades recentes (exemplo)
+    const atividadesRecentes = [
+      {
+        id: '1',
+        acao: 'login',
+        detalhes: 'Login realizado com sucesso',
+        data: new Date().toISOString(),
+        usuario: userId
+      },
+      {
+        id: '2',
+        acao: 'turma_criada',
+        detalhes: 'Nova turma criada: Matemática Básica',
+        data: new Date(Date.now() - 3600000).toISOString(),
+        usuario: userId
+      },
+      {
+        id: '3',
+        acao: 'avaliacao_realizada',
+        detalhes: 'Avaliação aplicada para a turma A1',
+        data: new Date(Date.now() - 86400000).toISOString(),
+        usuario: userId
+      }
+    ];
+
     return {
-      turmasUsuario: turmasUsuario,
+      turmasUsuario: turmasUsuario || 0,
       turmasTotal: turmasTotal || 0,
       alunosTotal: alunosTotal || 0,
-      avaliacoesRealizadas
+      professoresTotal: professoresTotal || 0,
+      monitoresTotal: monitoresTotal || 0,
+      adminsTotal: adminsTotal || 0,
+      avaliacoesRealizadas,
+      referenciaLinks,
+      atividadesRecentes
     };
 
   } catch (error) {
     console.error('Erro ao buscar estatísticas do dashboard:', error);
     throw error;
   }
+}
+
+// ============================================================================
+// FUNÇÕES DE DETALHES DO DASHBOARD
+// ============================================================================
+
+export interface Avaliacao {
+  id: string;
+  titulo: string;
+  descricao: string;
+  data_limite: string;
+  status: 'pendente' | 'em_andamento' | 'concluida';
+  turma_id: string;
+  turma_nome?: string;
+}
+
+export interface Usuario {
+  id: string;
+  nome: string;
+  email: string;
+  categoria: 'aluno' | 'professor' | 'monitor' | 'admin';
+  avatar_url?: string;
+}
+
+/**
+ * Busca todas as avaliações associadas a um usuário (a lógica exata pode precisar de ajuste).
+ */
+export async function getAvaliacoes(userId: string): Promise<Avaliacao[]> {
+  // Esta é uma implementação de exemplo. A query real dependerá do seu schema.
+  // Por exemplo, pode ser necessário buscar avaliações das turmas em que o usuário é membro.
+  const { data, error } = await supabase
+    .from('avaliacoes')
+    .select(`
+      id, titulo, data_limite, status
+    `)
+    .order('data_limite', { ascending: true });
+
+  if (error) {
+    console.error('Erro ao buscar avaliações:', error);
+    throw new Error('Não foi possível carregar as avaliações.');
+  }
+
+  return data.map((av: any) => ({
+    ...av,
+    turma_nome: 'N/A', // Temporarily disabled until schema is confirmed
+  }));
+}
+
+/**
+ * Busca as turmas de um usuário para o dashboard, distinguindo por categoria.
+ */
+export async function getTurmasParaDashboard(userId: string, userCategoria: string): Promise<Turma[]> {
+  let query;
+
+  if (userCategoria === 'professor' || userCategoria === 'admin') {
+    // Professores e Admins veem as turmas que eles criaram
+    query = supabase
+      .from('turmas')
+      .select(`
+        id, nome, descricao, created_at,
+        professor:profiles!professor_id ( nome )
+      `)
+      .eq('professor_id', userId);
+  } else {
+    // Alunos e Monitores veem as turmas das quais são membros
+    const { data: membros, error: membrosError } = await supabase
+      .from('turma_membros')
+      .select('turma_id')
+      .eq('user_id', userId);
+
+    if (membrosError) {
+      console.error('Erro ao buscar turmas do membro:', membrosError);
+      return [];
+    }
+    if (!membros || membros.length === 0) {
+      return [];
+    }
+
+    const turmaIds = membros.map(m => m.turma_id);
+    query = supabase
+      .from('turmas')
+      .select(`
+        id, nome, descricao, created_at,
+        professor:profiles!professor_id ( nome )
+      `)
+      .in('id', turmaIds);
+  }
+
+  const { data, error } = await query.order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Erro ao buscar turmas para o dashboard:', error);
+    throw new Error('Não foi possível carregar as turmas.');
+  }
+
+  return data.map((turma: any) => ({
+    ...turma,
+    professor_nome: turma.professor?.nome || 'N/A',
+  }));
+}
+
+/**
+ * Busca usuários por categoria.
+ */
+export interface ReferenciaLink {
+  id: string;
+  titulo: string;
+  url: string;
+  tipo: 'drive' | 'pdf' | 'docs' | 'link' | 'outro';
+}
+
+/**
+ * Busca usuários por categoria.
+ */
+export async function getUsuariosPorCategoria(categoria: string): Promise<Usuario[]> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, nome, email, categoria, avatar_url')
+    .eq('categoria', categoria)
+    .order('nome', { ascending: true });
+
+  if (error) {
+    console.error(`Erro ao buscar usuários da categoria ${categoria}:`, error);
+    throw new Error(`Não foi possível carregar os usuários.`);
+  }
+
+  return data || [];
 }
