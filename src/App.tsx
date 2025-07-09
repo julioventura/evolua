@@ -1,4 +1,6 @@
-import React from 'react'
+import React, { Suspense } from 'react'
+// Lazy load para MembrosPage
+const LazyMembrosPage = React.lazy(() => import('./pages/MembrosPage'));
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthProvider'
 import { ThemeProvider } from './contexts/ThemeProvider'
@@ -65,7 +67,6 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              
               {/* Rotas de Turmas */}
               <Route 
                 path="/turmas" 
@@ -99,7 +100,17 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
-              
+              {/* Página de Membros */}
+              <Route 
+                path="/membros" 
+                element={
+                  <ProtectedRoute>
+                    <Suspense fallback={<div>Carregando...</div>}>
+                      <LazyMembrosPage />
+                    </Suspense>
+                  </ProtectedRoute>
+                } 
+              />
               {/* Rotas de Perfil */}
               <Route 
                 path="/perfil" 

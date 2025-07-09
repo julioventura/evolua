@@ -35,6 +35,12 @@ export const Header: React.FC = () => {
                 >
                   Turmas
                 </Link>
+                <Link
+                  to="/membros"
+                  className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Membros
+                </Link>
               </>
             ) : (
               <>
@@ -121,6 +127,13 @@ export const Header: React.FC = () => {
                   {user && (
                     <>
                       <Link
+                        to="/membros"
+                        className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        Membros
+                      </Link>
+                      <Link
                         to="/perfil"
                         className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
                         onClick={() => setIsMobileMenuOpen(false)}
@@ -140,15 +153,17 @@ export const Header: React.FC = () => {
                         className="block w-full text-left px-3 py-2 text-base font-medium text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-900 dark:hover:text-red-300 rounded-md transition-colors"
                         onClick={async () => {
                           // Força signOut diretamente pelo supabaseClient para garantir remoção dos tokens
-                          try {
-                            const { supabase } = require('../../lib/supabaseClient');
-                            await supabase.auth.signOut();
-                          } catch {}
-                          setIsMobileMenuOpen(false);
-                          // Remove tokens do Supabase para garantir que não relogue automaticamente
-                          localStorage.clear();
-                          sessionStorage.clear();
-                          window.location.replace('/');
+                          import('../../lib/supabaseClient').then(async ({ supabase }) => {
+                            try {
+                              await supabase.auth.signOut();
+                            } catch {
+                              // erro ao deslogar
+                            }
+                            setIsMobileMenuOpen(false);
+                            localStorage.clear();
+                            sessionStorage.clear();
+                            window.location.replace('/');
+                          });
                         }}
                       >
                         Sair

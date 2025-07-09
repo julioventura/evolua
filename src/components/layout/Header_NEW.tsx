@@ -35,6 +35,12 @@ export const Header: React.FC = () => {
                 >
                   Turmas
                 </Link>
+                <Link
+                  to="/membros"
+                  className="text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Membros
+                </Link>
               </>
             ) : (
               <>
@@ -114,6 +120,13 @@ export const Header: React.FC = () => {
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     Turmas
+                  </Link>
+                  <Link
+                    to="/membros"
+                    className="block px-3 py-2 text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Membros
                   </Link>
                   <Link
                     to="/perfil"
