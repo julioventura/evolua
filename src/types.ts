@@ -86,9 +86,16 @@ export interface ReferenciaLink {
 // Atividade recente no sistema
 export interface AtividadeRecente {
   id: string;
-  detalhes: string; // Alinhado com a propriedade retornada pelo serviço
-  data: string; // Mantido como string para consistência com Supabase
-  tipo: 'turma' | 'avaliacao' | 'usuario';
+  created_at: string;
+  user_id: string;
+  turma_id?: string;
+  tipo: string; // Ex: 'CRIOU_TURMA', 'ADICIONOU_MEMBRO'
+  detalhes: {
+    descricao: string; // Ex: "Você criou a turma 'Cálculo I'"
+    [key: string]: any; // Outros dados relevantes
+  };
+  usuario?: Pick<Usuario, 'id' | 'full_name' | 'avatar_url'>; // Dados do usuário que realizou a ação
+  turma?: Pick<Turma, 'id' | 'nome'>; // Dados da turma relacionada
 }
 
 // Representa uma avaliação

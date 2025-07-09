@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 import { Session, User } from '@supabase/supabase-js';
+import { logAtividade } from '../lib/turmasService2';
 import { supabase } from '../lib/supabaseClient';
 
 // Estendendo o tipo User para incluir metadados que usamos na aplicação
@@ -42,6 +43,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Ouve mudanças no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      if (_event === 'SIGNED_IN' && newSession?.user) {
+        logAtividade(
+          newSession.user.id,
+          'USER_LOGIN',
+          { descricao: 'Usuário realizou login.' }
+        );
+      }
       setSession(newSession);
       setUser(newSession?.user as AppUser ?? null);
       // Se o listener for acionado, o estado de loading já deve ser false

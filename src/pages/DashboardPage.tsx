@@ -2,12 +2,13 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   getDashboardStats,
-  getAvaliacoes,
+  
   getTurmasParaDashboard,
   getUsuariosPorCategoria,
-  getReferenciaLinks,
+
   getAtividadesRecentes
 } from '../lib/turmasService2';
+import { getAvaliacoesDoUsuario } from '../lib/avaliacoesService';
 import type { DashboardStats, Avaliacao, Turma, Usuario, ReferenciaLink, AtividadeRecente } from '../types';
 import {
   UsersIcon,
@@ -18,7 +19,7 @@ import {
   ShieldCheckIcon,
   CogIcon,
   DocumentChartBarIcon as DocumentReportIcon,
-  ClockIcon,
+
   LinkIcon,
   DocumentTextIcon,
   FolderIcon
@@ -31,6 +32,7 @@ import { ptBR } from 'date-fns/locale';
 const DashboardPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [atividades, setAtividades] = useState<AtividadeRecente[]>([]);
   const [componentLoading, setComponentLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,11 +46,16 @@ const DashboardPage: React.FC = () => {
     if (user) {
       try {
         setComponentLoading(true);
-        const data = await getDashboardStats(user.id);
-        setStats(data);
+        const [statsData, atividadesData] = await Promise.all([
+          getDashboardStats(user.id),
+          getAtividadesRecentes(),
+        ]);
+        setStats(statsData);
+        setAtividades(atividadesData);
       } catch (err: any) {
-        setError('Falha ao carregar as estatísticas. Tente novamente mais tarde.');
+        setError('Falha ao carregar os dados do dashboard. Tente novamente mais tarde.');
         setStats(null);
+        setAtividades([]);
       } finally {
         setComponentLoading(false);
       }
@@ -80,7 +87,7 @@ const DashboardPage: React.FC = () => {
       let data;
       switch (dataType) {
         case 'Avaliações Realizadas':
-          data = await getAvaliacoes();
+          data = await getAvaliacoesDoUsuario();
           break;
         case 'Minhas Turmas':
         
@@ -215,13 +222,19 @@ const DashboardPage: React.FC = () => {
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-bold mb-4 dark:text-white">Histórico de Atividades</h2>
           <ul className="space-y-4">
-            {stats.atividadesRecentes?.length > 0 ? (
-              stats.atividadesRecentes.map((act: AtividadeRecente) => (
-                <li key={act.id} className="flex items-center">
-                  <ClockIcon className="h-5 w-5 text-gray-400 mr-4" />
-                  <div>
-                    <p className="font-medium dark:text-gray-200">{act.detalhes}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(act.data), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+            {atividades.length > 0 ? (
+              atividades.map((act) => (
+                <li key={act.id} className="flex items-start space-x-4">
+                   <img 
+                    className="h-10 w-10 rounded-full"
+                    src={act.usuario?.avatar_url || `https://ui-avatars.com/api/?name=${act.usuario?.full_name || '?'}&background=random`}
+                    alt="Avatar"
+                  />
+                  <div className="flex-1">
+                    <p className="text-sm text-gray-800 dark:text-gray-200" dangerouslySetInnerHTML={{ __html: act.detalhes?.descricao || 'Atividade não descrita' }}></p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {act.usuario?.full_name} - {format(new Date(act.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </p>
                   </div>
                 </li>
               ))

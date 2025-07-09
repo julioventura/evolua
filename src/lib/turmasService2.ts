@@ -49,7 +49,7 @@ export async function getAvaliacoes(): Promise<Avaliacao[]> {
 
     const { data, error } = await supabase
         .from('avaliacoes')
-        .select('*, turma:turmas(nome)')
+        .select('*, titulo:atividade_id, turma:turmas(nome)')
         .or(`aluno_id.eq.${user.id},avaliador_id.eq.${user.id}`);
 
     if (error) {
@@ -91,7 +91,38 @@ export async function getReferenciaLinks(): Promise<ReferenciaLink[]> {
 }
 
 export async function getAtividadesRecentes(): Promise<AtividadeRecente[]> {
-    return [];
+    const { data, error } = await supabase
+        .from('atividades_recentes')
+        .select('*, usuario:profiles(id, full_name, avatar_url), turma:turmas(id, nome)')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+    if (error) {
+        console.error('Erro ao buscar atividades recentes:', error);
+        return [];
+    }
+
+    return data || [];
+}
+
+// Helper para registrar atividades
+export async function logAtividade(
+  user_id: string,
+  tipo: string,
+  detalhes: object,
+  turma_id?: string
+) {
+  const { error } = await supabase.from('atividades_recentes').insert({
+    user_id,
+    tipo,
+    detalhes,
+    turma_id,
+  });
+
+  if (error) {
+    console.error('Erro ao registrar atividade:', error);
+    // Não lançar erro aqui para não quebrar a operação principal
+  }
 }
 
 // ============================================================================
@@ -131,6 +162,15 @@ export async function createTurma(turmaData: CreateTurmaData): Promise<Turma> {
         .select()
         .single();
     if (error) throw new Error('Erro ao criar turma.');
+
+    // Log da atividade
+    await logAtividade(
+        user.id,
+        'CRIOU_TURMA',
+        { descricao: `O usuário criou a turma "${data.nome}".` },
+        data.id
+    );
+
     return data;
 }
 
@@ -142,12 +182,40 @@ export async function updateTurma(id: string, turmaData: UpdateTurmaData): Promi
         .select()
         .single();
     if (error) throw new Error('Erro ao atualizar turma.');
+
+    // Log da atividade
+    const { data: { user } } = await supabase.auth.getUser();
+    if(user) {
+        await logAtividade(
+            user.id,
+            'ATUALIZOU_TURMA',
+            { descricao: `Atualizou os dados da turma "${data.nome}".` },
+            data.id
+        );
+    }
+
     return data;
 }
 
-export async function deleteTurma(id: string): Promise<void> {
-    const { error } = await supabase.from('turmas').delete().eq('id', id);
+export async function deleteTurma(turmaId: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Usuário não autenticado.');
+
+    // Busca detalhes da turma para o log antes de deletar
+    const { data: turma } = await supabase.from('turmas').select('id, nome').eq('id', turmaId).single();
+
+    const { error } = await supabase.from('turmas').delete().eq('id', turmaId);
     if (error) throw new Error('Erro ao deletar turma.');
+
+    // Log da atividade
+    if (turma) {
+        await logAtividade(
+            user.id,
+            'DELETOU_TURMA',
+            { descricao: `Deletou a turma "${turma.nome}".` },
+            turma.id
+        );
+    }
 }
 
 // ============================================================================
@@ -164,6 +232,14 @@ export async function ingressarNaTurma(codigoConvite: string): Promise<{ turma: 
     const { data: membro, error } = await supabase.from('turmas_membros').insert({ turma_id: turma.id, user_id: user.id, papel: 'aluno', status: 'ativo' }).select().single();
     if (error) throw new Error('Erro ao ingressar na turma.');
 
+    // Log da atividade
+    await logAtividade(
+        user.id,
+        'ENTROU_NA_TURMA',
+        { descricao: `Entrou na turma "${turma.nome}" usando um código.` },
+        turma.id
+    );
+
     return { turma, membro };
 }
 
@@ -174,19 +250,53 @@ export async function getMembros(turmaId: string): Promise<TurmaMembro[]> {
 }
 
 export async function addMembroTurma(turmaId: string, userId: string, papel: 'aluno' | 'monitor' | 'professor'): Promise<TurmaMembro> {
+    const { data: authUser } = await supabase.auth.getUser();
+    if (!authUser.user) throw new Error('Usuário não autenticado.');
+
     const { data, error } = await supabase.from('turmas_membros').insert({ turma_id: turmaId, user_id: userId, papel, status: 'ativo' }).select().single();
     if (error) throw new Error('Erro ao adicionar membro.');
+
+    // Log da atividade
+    await logAtividade(
+        authUser.user.id,
+        'ADICIONOU_MEMBRO',
+        { descricao: `Adicionou o usuário com ID ${userId} à turma.` },
+        turmaId
+    );
+
     return data;
 }
 
 export async function removeMembroTurma(turmaId: string, userId: string): Promise<void> {
     const { error } = await supabase.from('turmas_membros').delete().eq('turma_id', turmaId).eq('user_id', userId);
     if (error) throw new Error('Erro ao remover membro.');
+
+    // Log da atividade
+    const { data: { user } } = await supabase.auth.getUser();
+    if(user) {
+        await logAtividade(
+            user.id,
+            'REMOVEU_MEMBRO',
+            { descricao: `Removeu o usuário (ID: ${userId}) da turma.` },
+            turmaId
+        );
+    }
 }
 
 export async function updateMembroPapel(turmaId: string, userId: string, papel: 'aluno' | 'monitor' | 'professor'): Promise<TurmaMembro> {
     const { data, error } = await supabase.from('turmas_membros').update({ papel }).eq('turma_id', turmaId).eq('user_id', userId).select().single();
     if (error) throw new Error('Erro ao atualizar papel do membro.');
+
+    // Log da atividade
+    const { data: { user } } = await supabase.auth.getUser();
+    if(user) {
+        await logAtividade(
+            user.id,
+            'ATUALIZOU_PAPEL_MEMBRO',
+            { descricao: `Atualizou o papel do membro ${userId} para ${papel} na turma.` },
+            turmaId
+        );
+    }
     return data;
 }
 
@@ -211,17 +321,44 @@ export async function adicionarMembroPorEmail(turmaId: string, email: string, pa
     if (error) {
         return { success: false, message: error.message };
     }
+    // Log da atividade
+    const { data: { user } } = await supabase.auth.getUser();
+    if(user) {
+        await logAtividade(
+            user.id,
+            'CADASTROU_E_ADICIONOU_MEMBRO',
+            { descricao: `Cadastrou e adicionou o novo usuário com email ${email} à turma.` },
+            turmaId
+        );
+    }
+
     return { success: true, message: 'Membro adicionado com sucesso!' };
 }
 
-export async function cadastrarEAdicionarMembro(turmaId: string, email: string, fullName: string, papel: 'aluno' | 'monitor' | 'professor'): Promise<{ success: boolean, message: string }> {
-    const { data: authData, error: signUpError } = await supabase.auth.signUp({ email, password: 'password123', options: { data: { full_name: fullName, papel } } });
-    if (signUpError || !authData.user) {
-        return { success: false, message: signUpError?.message || 'Erro ao cadastrar usuário.' };
+
+
+export async function cadastrarEAdicionarMembro(turmaId: string, email: string, nome: string, papel: 'aluno' | 'monitor' | 'professor'): Promise<{ success: boolean; message: string; }> {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return { success: false, message: 'Usuário não autenticado.' };
     }
-    const { error: insertError } = await supabase.from('turmas_membros').insert({ turma_id: turmaId, user_id: authData.user.id, papel, status: 'ativo' });
-    if (insertError) {
-        return { success: false, message: insertError.message };
+
+    // Invoca a função Edge para convidar o usuário
+    const { error } = await supabase.functions.invoke('invite-user', {
+        body: { turma_id: turmaId, email, full_name: nome, papel, invited_by: user.id },
+    });
+
+    if (error) {
+        return { success: false, message: `Erro ao convidar usuário: ${error.message}` };
     }
-    return { success: true, message: 'Usuário cadastrado e adicionado com sucesso!' };
+
+    // Log da atividade
+    await logAtividade(
+        user.id,
+        'CADASTROU_E_ADICIONOU_MEMBRO',
+        { descricao: `Convidou o novo usuário (${email}) para a turma.` },
+        turmaId
+    );
+
+    return { success: true, message: 'Convite enviado e membro pré-cadastrado com sucesso!' };
 }
