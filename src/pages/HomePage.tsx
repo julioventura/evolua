@@ -63,6 +63,9 @@ export const HomePage: React.FC = () => {
             e-volua
           </h1>
 
+            <div className='text-white mb-10 mt-0'>Avaliação de Desempenho na Prática de Alunos. FOP/UPE.</div>
+
+
           {user ? (
             <div className="space-y-4">
               <p className="text-lg text-gray-700 dark:text-gray-300">
