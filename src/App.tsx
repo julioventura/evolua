@@ -15,6 +15,7 @@ import { TurmaDetailsPage } from './pages/TurmaDetailsPage'
 import { PerfilPage } from './pages/PerfilPage'
 import { ConfiguracoesPage } from './pages/ConfiguracoesPage'
 import { useAuth } from './contexts/AuthContext'
+import ChatbotModal from "./components/ChatbotModal";
 
 // Componente para proteger rotas privadas
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -120,6 +121,9 @@ function App() {
               {/* Rota de fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+
+            <ChatbotModal />
+
           </AppLayout>
         </BrowserRouter>
       </ThemeProvider>
