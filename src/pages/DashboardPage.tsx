@@ -19,6 +19,7 @@ import {
   ShieldCheckIcon,
   CogIcon,
   DocumentChartBarIcon as DocumentReportIcon,
+  PlusIcon,
 
   LinkIcon,
   DocumentTextIcon,
@@ -41,6 +42,8 @@ const DashboardPage: React.FC = () => {
   const [modalData, setModalData] = useState<Avaliacao[] | Turma[] | Usuario[] | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
+
+  const [isNovaAvaliacaoModalOpen, setIsNovaAvaliacaoModalOpen] = useState(false);
 
   const loadDashboardData = useCallback(async () => {
     if (user) {
@@ -184,6 +187,12 @@ const DashboardPage: React.FC = () => {
         <div className="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-bold mb-4 dark:text-white">Ações Rápidas</h2>
           <div className="space-y-3">
+            <button 
+              onClick={() => setIsNovaAvaliacaoModalOpen(true)}
+              className="w-full flex items-center justify-center p-3 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition-colors duration-300 font-semibold">
+              <PlusIcon className="h-5 w-5 mr-2" />
+              Nova Avaliação
+            </button>
             <button className="w-full flex items-center justify-center p-3 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors duration-300 font-semibold">
               <DocumentReportIcon className="h-5 w-5 mr-2" />
               Gerar Relatório
@@ -247,6 +256,13 @@ const DashboardPage: React.FC = () => {
 
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={modalTitle}>
         {renderModalContent()}
+      </Modal>
+
+      <Modal isOpen={isNovaAvaliacaoModalOpen} onClose={() => setIsNovaAvaliacaoModalOpen(false)} title="Criar Nova Avaliação">
+        <div>
+          <p>Formulário de criação de avaliação virá aqui.</p>
+          {/* TODO: Implementar formulário com campos para título, descrição, turma, data limite, etc. */}
+        </div>
       </Modal>
     </div>
   );
