@@ -20,13 +20,44 @@ export const HomePage: React.FC = () => {
 
   const { user } = authContext
 
+  // Array de features para exibir na Home
+  const features = [
+    {
+      title: 'Gestão de Turmas',
+      description: 'Organize alunos em turmas e gerencie múltiplas classes de forma centralizada.',
+      svg: (
+        <svg className="w-6 h-6 text-primary-100 dark:text-primary-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Avaliação Simplificada',
+      description: 'Interface intuitiva para professores avaliarem o desempenho dos alunos de forma rápida e eficiente.',
+      svg: (
+        <svg className="w-6 h-6 text-primary-100 dark:text-primary-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+    },
+    {
+      title: 'Relatórios Detalhados',
+      description: 'Acompanhe o progresso dos alunos com relatórios visuais e métricas de desempenho.',
+      svg: (
+        <svg className="w-6 h-6 text-primary-100 dark:text-primary-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:to-gray-800">
       {showDevNotice && (
         <DevModeNotice onDismiss={() => setShowDevNotice(false)} />
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">        
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center">
           <h1 className="text-4xl md:text-6xl font-bold text-yellow-500 dark:text-yellow-400 mb-12">
             e-volua
@@ -37,12 +68,6 @@ export const HomePage: React.FC = () => {
               <p className="text-lg text-gray-700 dark:text-gray-300">
                 Bem-vindo de volta, <span className="font-semibold">{user.nome}</span>!
               </p>
-              <Link
-                to="/dashboard"
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
-              >
-                Ir para Dashboard
-              </Link>
             </div>
           ) : (
             <div className="space-x-4">
@@ -62,42 +87,19 @@ export const HomePage: React.FC = () => {
           )}
         </div>
 
+        {/* Bloco de features em array */}
         <div className="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="text-center p-6">
-            <div className="w-12 h-12 mx-auto mb-4 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-primary-100 dark:text-primary-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+          {features.map((feature) => (
+            <div key={feature.title} className="text-center p-6">
+              <div className="w-12 h-12 mx-auto mb-4 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
+                {feature.svg}
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">{feature.title}</h3>
+              <p className="text-gray-600 dark:text-gray-400">
+                {feature.description}
+              </p>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Avaliação Simplificada</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Interface intuitiva para professores avaliarem o desempenho dos alunos de forma rápida e eficiente.
-            </p>
-          </div>
-
-          <div className="text-center p-6">
-            <div className="w-12 h-12 mx-auto mb-4 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-primary-100 dark:text-primary-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Relatórios Detalhados</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Acompanhe o progresso dos alunos com relatórios visuais e métricas de desempenho.
-            </p>
-          </div>
-
-          <div className="text-center p-6">
-            <div className="w-12 h-12 mx-auto mb-4 bg-primary-100 dark:bg-primary-900 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-primary-100 dark:text-primary-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-              </svg>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Gestão de Turmas</h3>
-            <p className="text-gray-600 dark:text-gray-400">
-              Organize alunos em turmas e gerencie múltiplas classes de forma centralizada.
-            </p>
-          </div>
+          ))}
         </div>
       </div>
     </div>
