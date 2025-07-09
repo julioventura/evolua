@@ -9,7 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { MembrosManager } from '../components/features/MembrosManager';
-import { adicionarMembroPorEmail, cadastrarEAdicionarMembro } from '../lib/turmasService';
+import { adicionarMembroPorEmail, cadastrarEAdicionarMembro } from '../lib/turmasService2';
 import type { TurmaMembro } from '../types';
 
 export function TurmaDetailsPage() {
@@ -158,14 +158,10 @@ export function TurmaDetailsPage() {
     if (!turmaAtual) return;
     
     const result = await cadastrarEAdicionarMembro(
-      turmaAtual.id, 
-      email, 
-      papel, 
-      dadosCompletos.nomeCompleto,
-      dadosCompletos.whatsapp,
-      dadosCompletos.nascimento,
-      dadosCompletos.cidade,
-      dadosCompletos.estado
+      turmaAtual.id,
+      email,
+      dadosCompletos.nomeCompleto || '',
+      papel
     );
     
     if (result.success) {

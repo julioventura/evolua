@@ -1,19 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { 
-  getDashboardStats, 
-  getAvaliacoes, 
-  getTurmasParaDashboard, 
-  getUsuariosPorCategoria 
-} from '../lib/turmasService';
-import type { DashboardStats, Avaliacao, Usuario, ReferenciaLink } from '../lib/turmasService';
-import type { Turma } from '../types';
-import { 
-  UsersIcon, 
-  BookOpenIcon, 
-  AcademicCapIcon, 
-  ClipboardDocumentCheckIcon as ClipboardCheckIcon, 
-  UserGroupIcon, 
+import {
+  getDashboardStats,
+  getAvaliacoes,
+  getTurmasParaDashboard,
+  getUsuariosPorCategoria,
+  getReferenciaLinks,
+  getAtividadesRecentes
+} from '../lib/turmasService2';
+import type { DashboardStats, Avaliacao, Turma, Usuario, ReferenciaLink, AtividadeRecente } from '../types';
+import {
+  UsersIcon,
+  BookOpenIcon,
+  AcademicCapIcon,
+  ClipboardDocumentCheckIcon as ClipboardCheckIcon,
+  UserGroupIcon,
   ShieldCheckIcon,
   CogIcon,
   DocumentChartBarIcon as DocumentReportIcon,
@@ -28,49 +29,43 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
 const DashboardPage: React.FC = () => {
-  const authContext = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [componentLoading, setComponentLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState('');
   const [modalData, setModalData] = useState<Avaliacao[] | Turma[] | Usuario[] | null>(null);
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState<string | null>(null);
 
-  const loadStats = useCallback(async () => {
-    if (authContext.user) {
+  const loadDashboardData = useCallback(async () => {
+    if (user) {
       try {
-        setLoading(true);
-        const userCategoria = authContext.user.app_metadata?.categoria || 'aluno';
-        const data = await getDashboardStats(authContext.user.id, userCategoria);
+        setComponentLoading(true);
+        const data = await getDashboardStats(user.id);
         setStats(data);
       } catch (err: any) {
         setError('Falha ao carregar as estatísticas. Tente novamente mais tarde.');
-        // Define stats com valores padrão em caso de erro para não quebrar a UI
-        setStats({
-          turmasUsuario: 0, turmasTotal: 0, alunosTotal: 0, professoresTotal: 0,
-          monitoresTotal: 0, adminsTotal: 0, avaliacoesRealizadas: 0,
-          referenciaLinks: [], atividadesRecentes: []
-        });
+        setStats(null);
       } finally {
-        setLoading(false);
+        setComponentLoading(false);
       }
     }
-  }, [authContext.user]);
+  }, [user]);
 
   useEffect(() => {
-    if (authContext.user) {
-        loadStats();
-    } else {
-        setLoading(false);
-        setError("Usuário não autenticado.");
+    if (!authLoading && user) {
+      loadDashboardData();
+    } else if (!authLoading && !user) {
+      setComponentLoading(false);
+      setError("Usuário não autenticado.");
     }
-  }, [loadStats, authContext.user]);
+  }, [authLoading, user, loadDashboardData]);
 
   const handleCardClick = async (dataType: string) => {
-    if (!authContext.user) {
+    if (!user) {
       setError("Sessão expirada. Por favor, faça login novamente.");
       return;
     }
@@ -82,17 +77,14 @@ const DashboardPage: React.FC = () => {
     setModalData(null);
 
     try {
-      const userId = authContext.user.id;
-      const userCategoria = authContext.user.app_metadata?.categoria || 'aluno';
       let data;
-
       switch (dataType) {
         case 'Avaliações Realizadas':
-          data = await getAvaliacoes(userId);
+          data = await getAvaliacoes();
           break;
         case 'Minhas Turmas':
-        case 'Turmas':
-          data = await getTurmasParaDashboard(userId, userCategoria);
+        
+          data = await getTurmasParaDashboard(user.id);
           break;
         case 'Alunos':
           data = await getUsuariosPorCategoria('aluno');
@@ -126,7 +118,7 @@ const DashboardPage: React.FC = () => {
       <ul className="space-y-3 max-h-96 overflow-y-auto pr-2">
         {modalData.map((item: any) => (
           <li key={item.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600">
-            <p className="font-semibold text-gray-800 dark:text-gray-100">{item.nome || item.titulo}</p>
+            <p className="font-semibold text-gray-800 dark:text-gray-100">{item.nome || item.titulo || item.full_name}</p>
             {item.email && <p className="text-sm text-gray-600 dark:text-gray-300">{item.email}</p>}
             {item.created_at && <p className="text-sm text-gray-500 dark:text-gray-400">Criado em: {format(new Date(item.created_at), 'dd/MM/yyyy', { locale: ptBR })}</p>}
             {item.data_limite && <p className="text-sm text-gray-500 dark:text-gray-400">Data Limite: {format(new Date(item.data_limite), 'dd/MM/yyyy', { locale: ptBR })}</p>}
@@ -137,7 +129,7 @@ const DashboardPage: React.FC = () => {
     );
   };
 
-  if (loading) {
+  if (authLoading || componentLoading) {
     return <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900"><LoadingSpinner /></div>;
   }
 
@@ -145,8 +137,7 @@ const DashboardPage: React.FC = () => {
     return <div className="text-center text-red-500 dark:text-red-400 mt-10 p-4">{error || 'Não foi possível carregar os dados do dashboard.'}</div>;
   }
 
-  const userCategoria = authContext.user?.app_metadata?.categoria || 'aluno';
-  const turmasLabel = userCategoria === 'professor' || userCategoria === 'admin' ? 'Minhas Turmas' : 'Turmas';
+  const turmasLabel = 'Minhas Turmas';
 
   const statCards = [
     { title: 'Avaliações Realizadas', value: stats.avaliacoesRealizadas, icon: ClipboardCheckIcon, color: 'blue' },
@@ -160,14 +151,13 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="p-4 md:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-gray-200">
       <h1 className="text-3xl font-bold dark:text-white mb-2">Dashboard</h1>
-      <p className="text-gray-600 dark:text-gray-300 mb-8">Bem-vindo(a) de volta, {authContext.user?.user_metadata?.full_name || 'Usuário'}.</p>
+      <p className="text-gray-600 dark:text-gray-300 mb-8">Bem-vindo(a) de volta, {user?.user_metadata?.full_name || 'Usuário'}.</p>
 
-      {/* Seção de Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {statCards.map(card => (
-          <div 
-            key={card.title} 
-            onClick={() => handleCardClick(card.title)} 
+          <div
+            key={card.title}
+            onClick={() => handleCardClick(card.title)}
             className={`bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-${card.color}-500`}
           >
             <div className="flex items-center">
@@ -183,9 +173,7 @@ const DashboardPage: React.FC = () => {
         ))}
       </div>
 
-      {/* Seção de Ações Rápidas e Histórico */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Ações Rápidas e Links Úteis */}
         <div className="lg:col-span-1 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-bold mb-4 dark:text-white">Ações Rápidas</h2>
           <div className="space-y-3">
@@ -202,37 +190,44 @@ const DashboardPage: React.FC = () => {
           <div className="mt-8">
             <h3 className="text-lg font-bold mb-4 dark:text-white">Links Úteis</h3>
             <div className="space-y-3">
-              {stats.referenciaLinks?.length ? stats.referenciaLinks.map((link: ReferenciaLink) => (
-                <a 
-                  key={link.id} 
-                  href={link.url} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="w-full flex items-center p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-300 font-medium"
-                >
-                  {link.tipo === 'pdf' && <DocumentTextIcon className="h-5 w-5 mr-3 text-red-500" />}
-                  {link.tipo === 'drive' && <FolderIcon className="h-5 w-5 mr-3 text-yellow-500" />}
-                  {!['pdf', 'drive'].includes(link.tipo) && <LinkIcon className="h-5 w-5 mr-3 text-blue-500" />}
-                  {link.titulo}
-                </a>
-              )) : <p className="text-gray-500 dark:text-gray-400">Nenhum link disponível.</p>}
+              {stats.referenciaLinks?.length > 0 ? (
+                stats.referenciaLinks.map((link: ReferenciaLink) => (
+                  <a
+                    key={link.id}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full flex items-center p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-300 font-medium"
+                  >
+                    {link.tipo === 'pdf' && <DocumentTextIcon className="h-5 w-5 mr-3 text-red-500" />}
+                    {link.tipo === 'drive' && <FolderIcon className="h-5 w-5 mr-3 text-yellow-500" />}
+                    {!['pdf', 'drive'].includes(link.tipo) && <LinkIcon className="h-5 w-5 mr-3 text-blue-500" />}
+                    {link.titulo}
+                  </a>
+                ))
+              ) : (
+                <p className="text-gray-500 dark:text-gray-400">Nenhum link disponível.</p>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Histórico de Atividades */}
         <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-bold mb-4 dark:text-white">Histórico de Atividades</h2>
           <ul className="space-y-4">
-            {stats.atividadesRecentes?.length ? stats.atividadesRecentes.map((act: any) => (
-              <li key={act.id} className="flex items-center">
-                <ClockIcon className="h-5 w-5 text-gray-400 mr-4" />
-                <div>
-                  <p className="font-medium dark:text-gray-200">{act.detalhes}</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(act.data), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
-                </div>
-              </li>
-            )) : <p className="text-gray-500 dark:text-gray-400">Nenhuma atividade recente.</p>}
+            {stats.atividadesRecentes?.length > 0 ? (
+              stats.atividadesRecentes.map((act: AtividadeRecente) => (
+                <li key={act.id} className="flex items-center">
+                  <ClockIcon className="h-5 w-5 text-gray-400 mr-4" />
+                  <div>
+                    <p className="font-medium dark:text-gray-200">{act.detalhes}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{format(new Date(act.data), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+                  </div>
+                </li>
+              ))
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">Nenhuma atividade recente.</p>
+            )}
           </ul>
         </div>
       </div>

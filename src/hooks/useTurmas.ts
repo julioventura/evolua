@@ -17,7 +17,7 @@ import {
   updateMembroPapel,
   isMembro,
   regenerarCodigoConvite
-} from '../lib/turmasService';
+} from '../lib/turmasService2';
 import type { 
   Turma, 
   CreateTurmaData, 
