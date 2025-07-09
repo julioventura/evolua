@@ -15,6 +15,14 @@ Este documento rastreia o progresso do desenvolvimento do dashboard, listando as
 
 ## Próximas Etapas
 
+- [ ] **Implementar Card "USUÁRIOS" (Apenas para Admins):**
+  - [ ] Adicionar um card "USUÁRIOS" na Dashboard, visível somente para usuários com perfil admin.
+  - [ ] Criar serviço para buscar todos os usuários e suas categorias na tabela "profiles".
+  - [ ] Exibir a lista de usuários agrupados por categoria em um modal ao clicar no card.
+  - [ ] Garantir que apenas admins possam acessar e visualizar este card/modal.
+  - [ ] Ao clicar num registro da lista de usuários abra um novo modal mostrando os dados principais do registro do usuario em "profiles".
+  - [ ] Garantir que apenas admins possam acessar e visualizar este card/modal.
+  
 - [ ] **Implementar Ação "Gerar Relatórios":** Desenvolver a funcionalidade para gerar relatórios a partir dos dados do dashboard.
 - [ ] **Implementar Ação "Gerenciar Alunos":** Criar a interface e a lógica para o gerenciamento de alunos.
 - [ ] **Implementar Histórico de Atividades (Logging):**
