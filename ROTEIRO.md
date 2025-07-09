@@ -12,6 +12,8 @@ Este documento rastreia o progresso do desenvolvimento do dashboard, listando as
 - [x] **Resolução de Problemas de Build/Cache:** Problemas de cache do TypeScript/Vite que afetavam os imports foram resolvidos com um reset do ambiente.
 - [x] **Correção do Modal do Dashboard:** O bug de visibilidade do modal foi completamente resolvido.
 - [x] **Refatoração Avançada do Modal:** O modal foi refatorado para usar estilos inline (via JavaScript), replicando o comportamento do `ChatbotModal` para garantir que os modos normal (com fundo transparente) e maximizado (tela cheia) funcionem perfeitamente.
+- [x] **Correção do Botão "Ver Usuários" para Admins:** O contexto do usuário agora é preenchido com o profile completo do banco após login/cadastro, garantindo que o botão laranja "Ver Usuários" apareça corretamente apenas para admins reais.
+- [x] **Cadastro Completo de Dados no Profile:** Campos como cidade, estado e categoria agora são gravados corretamente no profile do usuário ao cadastrar.
 
 ## Próximas Etapas
 

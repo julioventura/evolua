@@ -16,7 +16,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Verificar se há usuário logado
     const checkUser = async () => {
       const { data: { user: authUser } } = await supabase.auth.getUser()
-      
       if (authUser) {
         const basicProfile = {
           id: authUser.id,
@@ -143,9 +142,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       // 2. Se o usuário foi criado, tentar criar profile
       if (authData.user) {
-        console.log('📝 Criando profile...')
+        console.log('📝 Criando profile...');
         // Aguardar um pouco para garantir que o usuário foi salvo
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        await new Promise(resolve => setTimeout(resolve, 1500));
 
         // Verifica se já existe profile para evitar erro de duplicidade
         const { data: existingProfile } = await supabase
@@ -177,17 +176,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               .single();
 
             if (profileError) {
-              console.error('❌ Erro ao criar profile:', profileError)
-              console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.')
+              console.error('❌ Erro ao criar profile:', profileError);
+              console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.');
             } else {
-              console.log('✅ Profile criado com sucesso')
+              console.log('✅ Profile criado com sucesso');
             }
           } catch (profileError) {
-            console.error('❌ Exceção ao criar profile:', profileError)
-            console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.')
+            console.error('❌ Exceção ao criar profile:', profileError);
+            console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.');
           }
         } else {
-          console.log('ℹ️ Profile já existe, não será criado novamente.')
+          console.log('ℹ️ Profile já existe, não será criado novamente.');
+        }
+        // Buscar profile completo após cadastro
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+        if (profile) {
+          setUser(profile);
         }
       }
 
