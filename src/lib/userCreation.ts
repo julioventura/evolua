@@ -11,7 +11,7 @@ import type { TurmaMembro } from '../types';
 export async function criarUsuarioViaConvite(
   email: string,
   papel: TurmaMembro['papel'] = 'aluno',
-  nomeCompleto?: string,
+  nome?: string,
   whatsapp?: string,
   nascimento?: string,
   cidade?: string,
@@ -25,7 +25,7 @@ export async function criarUsuarioViaConvite(
       .from('profiles')
       .insert({
         email: email.toLowerCase(),
-        full_name: nomeCompleto || email.split('@')[0],
+        full_name: nome || email.split('@')[0],
         papel: papel,
         whatsapp: whatsapp || null,
         nascimento: nascimento || null,
@@ -66,7 +66,7 @@ export async function criarUsuarioViaConvite(
 export async function criarUsuarioComSenhaTemporaria(
   email: string,
   papel: TurmaMembro['papel'] = 'aluno',
-  nomeCompleto?: string,
+  nome?: string,
   whatsapp?: string,
   nascimento?: string,
   cidade?: string,
@@ -84,7 +84,7 @@ export async function criarUsuarioComSenhaTemporaria(
       password: senhaTemporaria,
       options: {
         data: {
-          full_name: nomeCompleto || email.split('@')[0],
+          full_name: nome || email.split('@')[0],
           papel: papel
         }
       }
@@ -118,7 +118,7 @@ export async function criarUsuarioComSenhaTemporaria(
         .insert({
           id: authData.user.id,
           email: email.toLowerCase(),
-          full_name: nomeCompleto || email.split('@')[0],
+          full_name: nome || email.split('@')[0],
           papel: papel,
           whatsapp: whatsapp || null,
           nascimento: nascimento || null,
@@ -157,7 +157,7 @@ export async function criarUsuarioComSenhaTemporaria(
 export async function criarPerfilTemporario(
   email: string,
   papel: TurmaMembro['papel'] = 'aluno',
-  nomeCompleto?: string,
+  nome?: string,
   whatsapp?: string,
   nascimento?: string,
   cidade?: string,
@@ -174,7 +174,7 @@ export async function criarPerfilTemporario(
       .insert({
         id: tempId,
         email: email.toLowerCase(),
-        full_name: nomeCompleto || email.split('@')[0],
+        full_name: nome || email.split('@')[0],
         papel: papel,
         whatsapp: whatsapp || null,
         nascimento: nascimento || null,

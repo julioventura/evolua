@@ -148,7 +148,7 @@ export function TurmaDetailsPage() {
     email: string, 
     papel: TurmaMembro['papel'], 
     dadosCompletos: {
-      nomeCompleto?: string;
+      nome?: string;
       whatsapp?: string;
       nascimento?: string;
       cidade?: string;
@@ -160,7 +160,7 @@ export function TurmaDetailsPage() {
     const result = await cadastrarEAdicionarMembro(
       turmaAtual.id,
       email,
-      dadosCompletos.nomeCompleto || '',
+      dadosCompletos.nome || '',
       papel
     );
     

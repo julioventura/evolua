@@ -16,7 +16,7 @@ interface MembrosManagerProps {
   isMonitor: boolean;
   onAdicionarMembro: (email: string, papel: TurmaMembro['papel']) => Promise<void>;
   onCadastrarEAdicionarMembro: (email: string, papel: TurmaMembro['papel'], dadosCompletos: {
-    nomeCompleto?: string;
+    nome?: string;
     whatsapp?: string;
     nascimento?: string;
     cidade?: string;
@@ -96,7 +96,7 @@ export function MembrosManager({
     email: string, 
     papel: TurmaMembro['papel'], 
     dadosCompletos: {
-      nomeCompleto?: string;
+      nome?: string;
       whatsapp?: string;
       nascimento?: string;
       cidade?: string;

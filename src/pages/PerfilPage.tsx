@@ -10,9 +10,9 @@ export const PerfilPage: React.FC = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    nome: user?.nome || '',
+    nome: user?.nome || user?.email || '',
     email: user?.email || '',
-    categoria: user?.categoria || 'aluno',
+    categoria: '',
     whatsapp: '',
     cidade: '',
     estado: '',
@@ -33,7 +33,7 @@ export const PerfilPage: React.FC = () => {
         setFormData({
           nome: data.nome || '',
           email: data.email || '',
-          categoria: data.categoria || 'aluno',
+          categoria: data.categoria || '',
           whatsapp: data.whatsapp || '',
           cidade: data.cidade || '',
           estado: data.estado || '',
@@ -77,7 +77,7 @@ export const PerfilPage: React.FC = () => {
     setFormData({
       nome: user?.nome || '',
       email: user?.email || '',
-      categoria: user?.categoria || 'aluno',
+      categoria: user?.categoria || '-',
       whatsapp: '',
       cidade: '',
       estado: '',
@@ -139,7 +139,7 @@ export const PerfilPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Nome Completo
+                  Nome
                 </label>
                 {isEditing ? (
                   <input

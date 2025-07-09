@@ -13,7 +13,7 @@ interface ConfirmCadastroModalProps {
   email: string;
   papel: TurmaMembro['papel'];
   onConfirm: (email: string, papel: TurmaMembro['papel'], dadosCompletos: {
-    nomeCompleto?: string;
+    nome?: string;
     whatsapp?: string;
     nascimento?: string;
     cidade?: string;
@@ -31,7 +31,7 @@ export function ConfirmCadastroModal({
   onCancel,
   loading = false
 }: ConfirmCadastroModalProps) {
-  const [nomeCompleto, setNomeCompleto] = useState('');
+  const [nome, setnome] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [nascimento, setNascimento] = useState('');
   const [cidade, setCidade] = useState('');
@@ -41,7 +41,7 @@ export function ConfirmCadastroModal({
 
   const handleConfirm = async () => {
     await onConfirm(email, papel, {
-      nomeCompleto: nomeCompleto.trim() || undefined,
+      nome: nome.trim() || undefined,
       whatsapp: whatsapp.trim() || undefined,
       nascimento: nascimento.trim() || undefined,
       cidade: cidade.trim() || undefined,
@@ -91,14 +91,14 @@ export function ConfirmCadastroModal({
 
           <div className="space-y-4 mb-6">
             <div>
-              <label htmlFor="nomeCompleto" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label htmlFor="nome" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Nome Completo (opcional)
               </label>
               <Input
-                id="nomeCompleto"
+                id="nome"
                 type="text"
-                value={nomeCompleto}
-                onChange={(e) => setNomeCompleto(e.target.value)}
+                value={nome}
+                onChange={(e) => setnome(e.target.value)}
                 placeholder="Digite o nome completo do usuário"
                 className="w-full"
               />
