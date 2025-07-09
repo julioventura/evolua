@@ -51,6 +51,7 @@ export const HomePage: React.FC = () => {
     },
   ];
 
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-primary-50 to-white dark:from-gray-900 dark:to-gray-800">
       {showDevNotice && (
@@ -63,7 +64,7 @@ export const HomePage: React.FC = () => {
             e-volua
           </h1>
 
-            <div className='text-white mb-10 mt-0'>Avaliação de Desempenho na Prática de Alunos. FOP/UPE.</div>
+            <div className='text-white mb-10 mt-0'>Avaliação de Desempenho na Prática Clínica de Alunos.</div>
 
 
           {user ? (
