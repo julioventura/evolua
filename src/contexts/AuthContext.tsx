@@ -21,6 +21,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => void;
+  isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -66,11 +67,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+
+  // Campo global: isAdmin
+  const isAdmin = user?.app_metadata?.userrole === 'admin';
+
   const value = {
     user,
     session,
     loading,
     signOut,
+    isAdmin,
   };
 
   return (

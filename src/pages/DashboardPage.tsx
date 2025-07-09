@@ -32,6 +32,9 @@ import { ptBR } from 'date-fns/locale';
 
 const DashboardPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
+  // Variável global de ambiente para facilitar testes de admin
+  // @ts-ignore
+  //
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [atividades, setAtividades] = useState<AtividadeRecente[]>([]);
   const [componentLoading, setComponentLoading] = useState(true);
@@ -44,6 +47,10 @@ const DashboardPage: React.FC = () => {
   const [modalError, setModalError] = useState<string | null>(null);
 
   const [isNovaAvaliacaoModalOpen, setIsNovaAvaliacaoModalOpen] = useState(false);
+  const [isUsuariosModalOpen, setIsUsuariosModalOpen] = useState(false);
+  const [usuariosPorCategoria, setUsuariosPorCategoria] = useState<Record<string, Usuario[]> | null>(null);
+  const [usuariosLoading, setUsuariosLoading] = useState(false);
+  const [usuariosError, setUsuariosError] = useState<string | null>(null);
 
   const loadDashboardData = useCallback(async () => {
     if (user) {
@@ -139,6 +146,25 @@ const DashboardPage: React.FC = () => {
     );
   };
 
+  const handleVerUsuariosClick = async () => {
+    setIsUsuariosModalOpen(true);
+    setUsuariosLoading(true);
+    setUsuariosError(null);
+    try {
+      // Busca todos os usuários agrupados por categoria
+      const categorias = ['admin', 'professor', 'monitor', 'aluno'];
+      const result: Record<string, Usuario[]> = {};
+      for (const cat of categorias) {
+        result[cat] = await getUsuariosPorCategoria(cat);
+      }
+      setUsuariosPorCategoria(result);
+    } catch (err: any) {
+      setUsuariosError('Erro ao buscar usuários.');
+    } finally {
+      setUsuariosLoading(false);
+    }
+  };
+
   if (authLoading || componentLoading) {
     return <div className="flex justify-center items-center h-screen bg-gray-50 dark:bg-gray-900"><LoadingSpinner /></div>;
   }
@@ -161,7 +187,15 @@ const DashboardPage: React.FC = () => {
   return (
     <div className="p-4 md:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-gray-200">
       <h1 className="text-3xl font-bold dark:text-white mb-2">Dashboard</h1>
-      <p className="text-gray-600 dark:text-gray-300 mb-8">Bem-vindo(a) de volta, {user?.user_metadata?.full_name || 'Usuário'}.</p>
+      <p className="text-gray-600 dark:text-gray-300 mb-8">
+        Bem-vindo{user?.full_name || user?.nome ? ' de volta, ' : 'a'}
+        {user?.full_name || user?.nome ? (
+          <span className="font-semibold">{user.full_name || user.nome}</span>
+        ) : (
+          ' Usuário'
+        )}
+        .
+      </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {statCards.map(card => (
@@ -201,6 +235,15 @@ const DashboardPage: React.FC = () => {
               <CogIcon className="h-5 w-5 mr-2" />
               Gerenciar Alunos
             </button>
+            {user?.categoria === 'admin' && (
+              <button
+                onClick={handleVerUsuariosClick}
+                className="w-full flex items-center justify-center p-3 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition-colors duration-300 font-semibold"
+              >
+                <UsersIcon className="h-5 w-5 mr-2" />
+                Ver usuários
+              </button>
+            )}
           </div>
 
           <div className="mt-8">
@@ -263,6 +306,29 @@ const DashboardPage: React.FC = () => {
           <p>Formulário de criação de avaliação virá aqui.</p>
           {/* TODO: Implementar formulário com campos para título, descrição, turma, data limite, etc. */}
         </div>
+      </Modal>
+
+      {/* Modal de usuários */}
+      <Modal isOpen={isUsuariosModalOpen} onClose={() => setIsUsuariosModalOpen(false)} title="Usuários por categoria">
+        {usuariosLoading && <LoadingSpinner />}
+        {usuariosError && <p className="text-red-500">{usuariosError}</p>}
+        {usuariosPorCategoria && (
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {Object.entries(usuariosPorCategoria).map(([categoria, usuarios]) => (
+              <div key={categoria}>
+                <h4 className="font-bold capitalize mb-2">{categoria}</h4>
+                <ul className="space-y-1">
+                  {usuarios.length === 0 && <li className="text-gray-400 text-sm">Nenhum usuário</li>}
+                  {usuarios.map(u => (
+                    <li key={u.id} className="p-2 bg-gray-100 dark:bg-gray-700 rounded">
+                      {u.full_name || u.nome} <span className="text-xs text-gray-500">({u.email})</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        )}
       </Modal>
     </div>
   );

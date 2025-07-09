@@ -79,7 +79,7 @@ export const HomePage: React.FC = () => {
                 to="/register"
                 className="inline-flex items-center px-6 py-3 border border-gray-500 dark:border-gray-400 text-base font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
               >
-                Começar Agora
+                Cadastrar
               </Link>
               <Link
                 to="/login"

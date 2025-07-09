@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabaseClient'
 import { AuthContext } from './AuthContext'
-import type { User, LoginCredentials, RegisterData } from '../types'
+// import type { AuthContextType } from '../types' // Removido: não utilizado
+import type { User } from '../types/index'
+import type { LoginCredentials, RegisterData } from '../types/index'
 
 interface AuthProviderProps {
   children: React.ReactNode
@@ -142,40 +144,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // 2. Se o usuário foi criado, tentar criar profile
       if (authData.user) {
         console.log('📝 Criando profile...')
-        
         // Aguardar um pouco para garantir que o usuário foi salvo
         await new Promise(resolve => setTimeout(resolve, 1500))
-        
-        try {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .insert([{
-              id: authData.user.id,
-              full_name: data.nome || data.email.split('@')[0],
-              nome: data.nome || data.email.split('@')[0], // <- ADICIONADO
-              email: data.email.toLowerCase(),
-              categoria: data.categoria || 'aluno',
-              papel: data.categoria || 'aluno',
-              whatsapp: data.whatsapp || null,
-              cidade: data.cidade || null,
-              estado: data.estado || null,
-              instituicao: data.instituicao || null,
-              registro_profissional: data.registro_profissional || null,
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }])
-            .select()
-            .single()
 
-          if (profileError) {
-            console.error('❌ Erro ao criar profile:', profileError)
+        // Verifica se já existe profile para evitar erro de duplicidade
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', authData.user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          try {
+            const { error: profileError } = await supabase
+              .from('profiles')
+              .insert([{
+                id: authData.user.id,
+                full_name: data.nome || data.email.split('@')[0],
+                nome: data.nome || data.email.split('@')[0],
+                email: data.email.toLowerCase(),
+                categoria: data.categoria || 'aluno',
+                papel: data.categoria || 'aluno',
+                whatsapp: data.whatsapp || null,
+                cidade: data.cidade || null,
+                estado: data.estado || null,
+                instituicao: data.instituicao || null,
+                registro_profissional: data.registro_profissional || null,
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+              }])
+              .select()
+              .single();
+
+            if (profileError) {
+              console.error('❌ Erro ao criar profile:', profileError)
+              console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.')
+            } else {
+              console.log('✅ Profile criado com sucesso')
+            }
+          } catch (profileError) {
+            console.error('❌ Exceção ao criar profile:', profileError)
             console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.')
-          } else {
-            console.log('✅ Profile criado com sucesso')
           }
-        } catch (profileError) {
-          console.error('❌ Exceção ao criar profile:', profileError)
-          console.log('⚠️ Usuário criado mas profile falhou. Pode ser criado no próximo login.')
+        } else {
+          console.log('ℹ️ Profile já existe, não será criado novamente.')
         }
       }
 

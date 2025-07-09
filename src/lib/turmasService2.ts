@@ -27,7 +27,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   const { count: professoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('papel', 'professor');
   const { count: monitoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('papel', 'monitor');
   const { count: adminsTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('papel', 'admin');
-  const { count: turmasUsuario } = await supabase.from('turmas_membros').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+  const { count: turmasUsuario } = await supabase.from('turma_membros').select('*', { count: 'exact', head: true }).eq('user_id', userId);
   const { count: avaliacoesRealizadas } = await supabase.from('avaliacoes').select('*', { count: 'exact', head: true }).eq('avaliador_id', userId);
 
   return {
@@ -62,7 +62,7 @@ export async function getAvaliacoes(): Promise<Avaliacao[]> {
 
 export async function getTurmasParaDashboard(userId: string): Promise<Turma[]> {
     const { data, error } = await supabase
-        .from('turmas_membros')
+        .from('turma_membros')
         .select('turmas(*)')
         .eq('user_id', userId);
 
@@ -229,7 +229,7 @@ export async function ingressarNaTurma(codigoConvite: string): Promise<{ turma: 
     const { data: turma, error: turmaError } = await supabase.from('turmas').select('*').eq('codigo_convite', codigoConvite).single();
     if (turmaError || !turma) throw new Error('Código de convite inválido.');
 
-    const { data: membro, error } = await supabase.from('turmas_membros').insert({ turma_id: turma.id, user_id: user.id, papel: 'aluno', status: 'ativo' }).select().single();
+    const { data: membro, error } = await supabase.from('turma_membros').insert({ turma_id: turma.id, user_id: user.id, papel: 'aluno', status: 'ativo' }).select().single();
     if (error) throw new Error('Erro ao ingressar na turma.');
 
     // Log da atividade
@@ -244,7 +244,7 @@ export async function ingressarNaTurma(codigoConvite: string): Promise<{ turma: 
 }
 
 export async function getMembros(turmaId: string): Promise<TurmaMembro[]> {
-    const { data, error } = await supabase.from('turmas_membros').select('*, user:profiles(*)').eq('turma_id', turmaId);
+    const { data, error } = await supabase.from('turma_membros').select('*, user:profiles(*)').eq('turma_id', turmaId);
     if (error) throw new Error('Erro ao buscar membros.');
     return data || [];
 }
@@ -253,7 +253,7 @@ export async function addMembroTurma(turmaId: string, userId: string, papel: 'al
     const { data: authUser } = await supabase.auth.getUser();
     if (!authUser.user) throw new Error('Usuário não autenticado.');
 
-    const { data, error } = await supabase.from('turmas_membros').insert({ turma_id: turmaId, user_id: userId, papel, status: 'ativo' }).select().single();
+    const { data, error } = await supabase.from('turma_membros').insert({ turma_id: turmaId, user_id: userId, papel, status: 'ativo' }).select().single();
     if (error) throw new Error('Erro ao adicionar membro.');
 
     // Log da atividade
@@ -268,7 +268,7 @@ export async function addMembroTurma(turmaId: string, userId: string, papel: 'al
 }
 
 export async function removeMembroTurma(turmaId: string, userId: string): Promise<void> {
-    const { error } = await supabase.from('turmas_membros').delete().eq('turma_id', turmaId).eq('user_id', userId);
+    const { error } = await supabase.from('turma_membros').delete().eq('turma_id', turmaId).eq('user_id', userId);
     if (error) throw new Error('Erro ao remover membro.');
 
     // Log da atividade
@@ -284,7 +284,7 @@ export async function removeMembroTurma(turmaId: string, userId: string): Promis
 }
 
 export async function updateMembroPapel(turmaId: string, userId: string, papel: 'aluno' | 'monitor' | 'professor'): Promise<TurmaMembro> {
-    const { data, error } = await supabase.from('turmas_membros').update({ papel }).eq('turma_id', turmaId).eq('user_id', userId).select().single();
+    const { data, error } = await supabase.from('turma_membros').update({ papel }).eq('turma_id', turmaId).eq('user_id', userId).select().single();
     if (error) throw new Error('Erro ao atualizar papel do membro.');
 
     // Log da atividade
@@ -301,7 +301,7 @@ export async function updateMembroPapel(turmaId: string, userId: string, papel: 
 }
 
 export async function isMembro(turmaId: string, userId: string): Promise<boolean> {
-    const { data, error } = await supabase.from('turmas_membros').select('user_id').eq('turma_id', turmaId).eq('user_id', userId).maybeSingle();
+    const { data, error } = await supabase.from('turma_membros').select('user_id').eq('turma_id', turmaId).eq('user_id', userId).maybeSingle();
     return !error && !!data;
 }
 
@@ -317,7 +317,7 @@ export async function adicionarMembroPorEmail(turmaId: string, email: string, pa
     if (!profile) {
         return { success: false, message: 'Usuário não encontrado. É necessário cadastro prévio.', needsRegistration: true };
     }
-    const { error } = await supabase.from('turmas_membros').insert({ turma_id: turmaId, user_id: profile.id, papel, status: 'ativo' });
+    const { error } = await supabase.from('turma_membros').insert({ turma_id: turmaId, user_id: profile.id, papel, status: 'ativo' });
     if (error) {
         return { success: false, message: error.message };
     }
