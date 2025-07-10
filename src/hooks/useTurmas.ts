@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from './useAuth';
+import { useProfile } from './useProfile';
 import {
   getTurmas as fetchTurmas,
   getTurma,
@@ -16,7 +17,8 @@ import {
   removeMembroTurma,
   updateMembroPapel,
   isMembro,
-  regenerarCodigoConvite
+  regenerarCodigoConvite,
+  getTurmasDoUsuario
 } from '../lib/turmasService2';
 import type { 
   Turma, 
@@ -62,6 +64,7 @@ interface UseTurmasReturn {
 
 export function useTurmas(): UseTurmasReturn {
   const { user } = useAuth();
+  const { profile } = useProfile(user?.id || '');
   
   // Estado
   const [turmas, setTurmas] = useState<Turma[]>([]);
@@ -89,20 +92,30 @@ export function useTurmas(): UseTurmasReturn {
   // ============================================================================
 
   const loadTurmas = useCallback(async (filtros?: FiltrosTurma) => {
-    if (!user) return;
+    if (!user || !profile) return;
     
     try {
       setLoading(true);
       clearError();
       
-      const data = await fetchTurmas(filtros);
-      setTurmas(data);
+      const filtrosAplicados = filtros || {};
+      
+      // Aplicar filtro baseado no papel do usuário
+      if (profile.categoria !== 'admin') {
+        // Para usuários não-admin, buscar apenas turmas onde são membros ou professores
+        const data = await getTurmasDoUsuario(user.id, filtrosAplicados);
+        setTurmas(data);
+      } else {
+        // Para admins, buscar todas as turmas
+        const data = await fetchTurmas(filtrosAplicados);
+        setTurmas(data);
+      }
     } catch (err) {
       handleError(err, 'Erro ao carregar turmas');
     } finally {
       setLoading(false);
     }
-  }, [user, clearError, handleError]);
+  }, [user, profile, clearError, handleError]);
 
   const loadTurma = useCallback(async (id: string) => {
     try {
@@ -348,18 +361,18 @@ export function useTurmas(): UseTurmasReturn {
   // EFEITOS
   // ============================================================================
 
-  // Carregar turmas quando o usuário fizer login
+  // Carregar turmas quando o usuário fizer login ou o profile for carregado
   useEffect(() => {
-    if (user) {
+    if (user && profile) {
       loadTurmas();
-    } else {
+    } else if (!user) {
       // Limpar estado quando usuário fizer logout
       setTurmas([]);
       setTurmaAtual(null);
       setMembros([]);
       setError(null);
     }
-  }, [user, loadTurmas]);
+  }, [user, profile, loadTurmas]);
 
   // ============================================================================
   // RETORNO

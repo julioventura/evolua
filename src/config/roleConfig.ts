@@ -1,17 +1,17 @@
 // Configurações dinâmicas por papel de usuário para páginas e componentes
 // Adicione novas propriedades conforme necessário para outros componentes
 
-export type UserRole = 'admin' | 'professor' | 'monitor' | 'aluno';
+export type UserRole = 'admin' | 'professor' | 'monitor' | 'aluno' | 'outro';
 
 interface TurmasConfig {
-  filtro: 'todas' | 'minhas' | 'monitoradas' | 'matriculadas';
+  filtro: 'todas' | 'minhas' | 'monitoradas' | 'matriculadas' | 'outro';
   titulo: string;
 }
 
 export const turmasRoleConfig: Record<UserRole, TurmasConfig> = {
   admin: {
     filtro: 'todas',
-    titulo: 'Todas as Turmas',
+    titulo: 'Todas Turmas',
   },
   professor: {
     filtro: 'minhas',
@@ -23,6 +23,10 @@ export const turmasRoleConfig: Record<UserRole, TurmasConfig> = {
   },
   aluno: {
     filtro: 'matriculadas',
+    titulo: 'Minhas Turmas',
+  },  
+  outro: {
+    filtro: 'outro',
     titulo: 'Minhas Turmas',
   },
 };

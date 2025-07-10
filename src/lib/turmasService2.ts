@@ -21,13 +21,16 @@ import type {
 // ============================================================================
 
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
-  // Implementação fictícia - substitua pela lógica real
+  // Contar turmas únicas do usuário (evitando duplicatas)
+  const turmasUnicas = await getTurmasParaDashboard(userId);
+  const turmasUsuario = turmasUnicas.length;
+  
+  // Outros contadores
   const { count: turmasTotal } = await supabase.from('turmas').select('*', { count: 'exact', head: true });
-  const { count: alunosTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('papel', 'aluno');
-  const { count: professoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('papel', 'professor');
-  const { count: monitoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('papel', 'monitor');
-  const { count: adminsTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('papel', 'admin');
-  const { count: turmasUsuario } = await supabase.from('turma_membros').select('*', { count: 'exact', head: true }).eq('user_id', userId);
+  const { count: alunosTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'aluno');
+  const { count: professoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'professor');
+  const { count: monitoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'monitor');
+  const { count: adminsTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'admin');
   const { count: avaliacoesRealizadas } = await supabase.from('avaliacoes').select('*', { count: 'exact', head: true }).eq('avaliador_id', userId);
 
   return {
@@ -36,7 +39,7 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
     professoresTotal: professoresTotal || 0,
     monitoresTotal: monitoresTotal || 0,
     adminsTotal: adminsTotal || 0,
-    turmasUsuario: turmasUsuario || 0,
+    turmasUsuario: turmasUsuario,
     avaliacoesRealizadas: avaliacoesRealizadas || 0,
     referenciaLinks: [],
     atividadesRecentes: [],
@@ -57,20 +60,45 @@ export async function getAvaliacoes(): Promise<Avaliacao[]> {
         return [];
     }
 
-    return data.map((a: any) => ({ ...a, turma_nome: a.turma?.nome || 'N/A' })) || [];
+    return data.map((a: Record<string, unknown>) => ({ ...a, turma_nome: (a.turma as Record<string, unknown>)?.nome || 'N/A' })) as Avaliacao[] || [];
 }
 
 export async function getTurmasParaDashboard(userId: string): Promise<Turma[]> {
-    const { data, error } = await supabase
-        .from('turma_membros')
-        .select('turmas(*)')
-        .eq('user_id', userId);
-
-    if (error) {
+    try {
+        // Buscar turmas onde o usuário é professor
+        const { data: turmasComoProfessor, error: errorProfessor } = await supabase
+            .from('turmas')
+            .select('*, professor:profiles!professor_id(*)')
+            .eq('professor_id', userId);
+        
+        if (errorProfessor) {
+            console.error('Erro ao buscar turmas como professor:', errorProfessor);
+        }
+        
+        // Buscar turmas onde o usuário é membro
+        const { data: turmasComoMembro, error: errorMembro } = await supabase
+            .from('turma_membros')
+            .select('turmas(*, professor:profiles!professor_id(*))')
+            .eq('user_id', userId);
+        
+        if (errorMembro) {
+            console.error('Erro ao buscar turmas como membro:', errorMembro);
+        }
+        
+        // Combinar resultados
+        const turmasMembroExtracted = turmasComoMembro?.map((item: Record<string, unknown>) => (item as Record<string, unknown>).turmas).filter(Boolean) as Turma[] || [];
+        const todasTurmas = [...(turmasComoProfessor || []), ...turmasMembroExtracted];
+        
+        // Remover duplicatas
+        const turmasUnicas = todasTurmas.filter((turma, index, self) => 
+            index === self.findIndex(t => t.id === turma.id)
+        );
+        
+        return turmasUnicas;
+    } catch (error) {
         console.error('Erro ao buscar turmas do usuário:', error);
         return [];
     }
-    return data.map((item: any) => item.turmas).filter(Boolean) || [];
 }
 
 export async function getUsuariosPorCategoria(papel: 'aluno' | 'professor' | 'monitor' | 'admin'): Promise<Usuario[]> {
@@ -140,6 +168,54 @@ export async function getTurmas(filtros?: FiltrosTurma): Promise<Turma[]> {
   const { data, error } = await query;
   if (error) throw new Error('Erro ao buscar turmas.');
   return data || [];
+}
+
+export async function getTurmasDoUsuario(userId: string, filtros?: FiltrosTurma): Promise<Turma[]> {
+  try {
+    // Primeira query: buscar turmas onde o usuário é professor
+    const { data: turmasProfessor, error: errorProfessor } = await supabase
+      .from('turmas')
+      .select('*, professor:profiles!professor_id(*)')
+      .eq('professor_id', userId);
+    
+    if (errorProfessor) {
+      console.error('Erro ao buscar turmas como professor:', errorProfessor);
+    }
+    
+    // Segunda query: buscar turmas onde o usuário é membro
+    const { data: turmasMembro, error: errorMembro } = await supabase
+      .from('turma_membros')
+      .select('turmas(*, professor:profiles!professor_id(*))')
+      .eq('user_id', userId);
+    
+    if (errorMembro) {
+      console.error('Erro ao buscar turmas como membro:', errorMembro);
+    }
+    
+    // Combinar resultados
+    const turmasComoMembro = turmasMembro?.map(item => (item as Record<string, unknown>).turmas).filter(Boolean) as Turma[] || [];
+    const todasTurmas = [...(turmasProfessor || []), ...turmasComoMembro];
+    
+    // Remover duplicatas
+    const turmasUnicas = todasTurmas.filter((turma, index, self) => 
+      index === self.findIndex(t => t.id === turma.id)
+    );
+    
+    // Aplicar filtros adicionais
+    let turmasFiltradas = turmasUnicas;
+    
+    if (filtros?.ativa !== undefined) {
+      turmasFiltradas = turmasFiltradas.filter(turma => turma.ativa === filtros.ativa);
+    }
+    if (filtros?.professor_id) {
+      turmasFiltradas = turmasFiltradas.filter(turma => turma.professor_id === filtros.professor_id);
+    }
+    
+    return turmasFiltradas;
+  } catch (error) {
+    console.error('Erro ao buscar turmas do usuário:', error);
+    throw error;
+  }
 }
 
 export async function getTurma(id: string): Promise<Turma | null> {

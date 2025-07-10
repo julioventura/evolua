@@ -17,15 +17,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const checkUser = async () => {
       const { data: { user: authUser } } = await supabase.auth.getUser()
       if (authUser) {
-        const basicProfile = {
-          id: authUser.id,
-          email: authUser.email || '',
-          nome: authUser.user_metadata?.nome || authUser.email?.split('@')[0] || 'Usuário',
-          categoria: authUser.user_metadata?.categoria || 'aluno',
-          created_at: authUser.created_at,
-          updated_at: new Date().toISOString()
-        }
-        setUser(basicProfile)
+      const categoria = authUser.user_metadata?.categoria || 'aluno';
+      const basicProfile = {
+        id: authUser.id,
+        email: authUser.email || '',
+        nome: authUser.user_metadata?.nome || authUser.email?.split('@')[0] || 'Usuário',
+        categoria,
+        created_at: authUser.created_at,
+        updated_at: new Date().toISOString()
+      }
+      setUser(basicProfile)
       }
     }
 
@@ -35,11 +36,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session?.user) {
+          const categoria = session.user.user_metadata?.categoria || 'aluno';
           const basicProfile = {
             id: session.user.id,
             email: session.user.email || '',
             nome: session.user.user_metadata?.nome || session.user.email?.split('@')[0] || 'Usuário',
-            categoria: session.user.user_metadata?.categoria || 'aluno',
+            categoria,
             created_at: session.user.created_at,
             updated_at: new Date().toISOString()
           }
@@ -66,11 +68,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
     
     if (data?.user) {
+      const categoria = data.user.user_metadata?.categoria || 'aluno';
       const basicProfile = {
         id: data.user.id,
         email: data.user.email || '',
         nome: data.user.user_metadata?.nome || data.user.email?.split('@')[0] || 'Usuário',
-        categoria: data.user.user_metadata?.categoria || 'aluno',
+        categoria,
         created_at: data.user.created_at || new Date().toISOString(),
         updated_at: new Date().toISOString()
       }

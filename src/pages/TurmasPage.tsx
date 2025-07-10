@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTurmas } from '../hooks/useTurmas';
 import { useAuth } from '../hooks/useAuth';
+import { useProfile } from '../hooks/useProfile';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
@@ -13,16 +14,17 @@ import type { Turma } from '../types';
 
 export function TurmasPage() {
   const { user } = useAuth();
+  const { profile } = useProfile(user?.id || '');
   const navigate = useNavigate();
-  const { 
-    turmas, 
-    loading, 
-    error, 
-    deleteTurma, 
+  const {
+    turmas,
+    loading,
+    error,
+    deleteTurma,
     ingressarComCodigo,
-    clearError 
+    clearError
   } = useTurmas();
-  
+
   const [searchTerm, setSearchTerm] = useState('');
   const [codigoConvite, setCodigoConvite] = useState('');
   const [showIngressar, setShowIngressar] = useState(false);
@@ -94,9 +96,9 @@ export function TurmasPage() {
     try {
       setLoadingAction('ingressar');
       clearError();
-      
+
       await ingressarComCodigo(codigoConvite.trim());
-      
+
       setCodigoConvite('');
       setShowIngressar(false);
       alert('Você ingressou na turma com sucesso!');
@@ -133,7 +135,7 @@ export function TurmasPage() {
   // ============================================================================
 
   const TurmaCard = ({ turma, isMinhaTurma }: { turma: Turma; isMinhaTurma: boolean }) => (
-    <div 
+    <div
       className="block bg-white rounded-lg shadow-md border border-gray-200 p-6 hover:shadow-lg transition-shadow cursor-pointer"
       onClick={() => navigate(`/turmas/${turma.id}`)}
     >
@@ -146,15 +148,15 @@ export function TurmasPage() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <span 
+          <span
             className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
             style={{ backgroundColor: turma.cor_tema }}
             title="Cor da turma"
           />
           <span className={`
             px-2 py-1 rounded-full text-xs font-medium
-            ${turma.ativa 
-              ? 'bg-green-100 text-green-800' 
+            ${turma.ativa
+              ? 'bg-green-100 text-green-800'
               : 'bg-gray-100 text-gray-800'
             }
           `}>
@@ -216,7 +218,7 @@ export function TurmasPage() {
       {/* Ações (apenas para minhas turmas) */}
       {isMinhaTurma && (
         <div className="flex items-center justify-between pt-4 border-t border-gray-200 space-x-2">
-          <Button 
+          <Button
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/turmas/${turma.id}`);
@@ -280,19 +282,21 @@ export function TurmasPage() {
             Gerencie suas turmas e acompanhe o progresso dos alunos
           </p>
         </div>
-        
+
         <div className="flex flex-col sm:flex-row gap-3 mt-4 md:mt-0">
-          <Button 
+          <Button
             variant="outline"
             onClick={() => setShowIngressar(!showIngressar)}
           >
             Ingressar em Turma
           </Button>
-          <Link to="/turmas/nova">
-            <Button>
-              + Nova Turma
-            </Button>
-          </Link>
+          {profile?.categoria === 'professor' && (
+            <Link to="/turmas/nova">
+              <Button>
+                + Nova Turma
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
@@ -309,7 +313,7 @@ export function TurmasPage() {
               className="flex-1"
               maxLength={6}
             />
-            <Button 
+            <Button
               onClick={handleIngressar}
               disabled={!codigoConvite.trim() || loadingAction === 'ingressar'}
             >
@@ -334,9 +338,9 @@ export function TurmasPage() {
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <p className="text-red-800">{error}</p>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={clearError}
             className="mt-2"
           >
@@ -348,98 +352,106 @@ export function TurmasPage() {
       {/* Conteúdo */}
       <div className="space-y-8">
 
-      {/* Turmas como Professor */}
-      {minhasTurmasProfessor.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            Como Professor ({minhasTurmasProfessor.length})
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-            {minhasTurmasProfessor.map(turma => (
-              <TurmaCard 
-                key={turma.id} 
-                turma={turma} 
-                isMinhaTurma={true}
-              />
-            ))}
+        {/* Turmas como Professor */}
+        {minhasTurmasProfessor.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Como Professor ({minhasTurmasProfessor.length})
+            </h2>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+              {minhasTurmasProfessor.map(turma => (
+                <TurmaCard
+                  key={turma.id}
+                  turma={turma}
+                  isMinhaTurma={true}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Turmas como Monitor */}
-      {minhasTurmasMonitor.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            Como Monitor ({minhasTurmasMonitor.length})
-          </h2>
-          <div className="space-y-4">
-            {minhasTurmasMonitor.map(turma => (
-              <TurmaCard 
-                key={turma.id} 
-                turma={turma} 
-                isMinhaTurma={false}
-              />
-            ))}
+        {/* Turmas como Monitor */}
+        {minhasTurmasMonitor.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Como Monitor ({minhasTurmasMonitor.length})
+            </h2>
+            <div className="space-y-4">
+              {minhasTurmasMonitor.map(turma => (
+                <TurmaCard
+                  key={turma.id}
+                  turma={turma}
+                  isMinhaTurma={false}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Turmas como Aluno */}
-      {minhasTurmasAluno.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            Como Aluno ({minhasTurmasAluno.length})
-          </h2>
-          <div className="space-y-4">
-            {minhasTurmasAluno.map(turma => (
-              <TurmaCard 
-                key={turma.id} 
-                turma={turma} 
-                isMinhaTurma={false}
-              />
-            ))}
+        {/* Turmas como Aluno */}
+        {minhasTurmasAluno.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Como Aluno ({minhasTurmasAluno.length})
+            </h2>
+            <div className="space-y-4">
+              {minhasTurmasAluno.map(turma => (
+                <TurmaCard
+                  key={turma.id}
+                  turma={turma}
+                  isMinhaTurma={false}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Turmas como Administrador */}
-      {minhasTurmasAdmin.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-            Como Administrador ({minhasTurmasAdmin.length})
-          </h2>
-          <div className="space-y-4">
-            {minhasTurmasAdmin.map(turma => (
-              <TurmaCard 
-                key={turma.id} 
-                turma={turma} 
-                isMinhaTurma={false}
-              />
-            ))}
+        {/* Turmas como Administrador */}
+        {minhasTurmasAdmin.length > 0 && (
+          <div>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+              Como Administrador ({minhasTurmasAdmin.length})
+            </h2>
+            <div className="space-y-4">
+              {minhasTurmasAdmin.map(turma => (
+                <TurmaCard
+                  key={turma.id}
+                  turma={turma}
+                  isMinhaTurma={false}
+                />
+              ))}
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
         {/* Estado vazio total */}
         {turmas.length === 0 && (
           <div className="text-center py-16">
             <h3 className="text-xl font-medium text-gray-900 mb-2">
-              Bem-vindo ao e-volua!
+              Olá!
             </h3>
             <p className="text-gray-600 mb-6">
-              {user?.categoria === 'aluno' 
-                ? 'Você ainda não faz parte de nenhuma turma. Use um código de convite para ingressar.'
-                : 'Você ainda não tem turmas. Crie sua primeira turma ou ingresse em uma existente.'
+              {profile?.categoria === 'aluno'
+                ? 'Você ainda não faz parte de nenhuma turma.'
+                : 'Você ainda não tem turmas.'
               }
+              <br />
+              <span className="text-gray-600 mb-6">
+                {profile?.categoria === 'aluno'
+                  ? 'Use um código de convite para ingressar.'
+                  : 'Crie sua primeira turma ou ingresse em uma existente.'
+                }
+              </span>
             </p>
+
             <div className="flex justify-center gap-3">
-              <Button 
+              <Button
                 variant="outline"
                 onClick={() => setShowIngressar(true)}
               >
                 Ingressar em Turma
               </Button>
-              {user?.categoria !== 'aluno' && (
+              {profile?.categoria === 'professor' && (
                 <Link to="/turmas/nova">
                   <Button>Criar Nova Turma</Button>
                 </Link>
