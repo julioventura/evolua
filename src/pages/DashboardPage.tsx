@@ -95,25 +95,31 @@ const DashboardPage: React.FC = () => {
     try {
       let data;
       switch (dataType) {
+
         case 'Avaliações Realizadas':
           data = await getAvaliacoesDoUsuario();
           break;
+
         case 'Minhas Turmas':
-        
           data = await getTurmasParaDashboard(user.id);
           break;
+
         case 'Alunos':
           data = await getUsuariosPorCategoria('aluno');
           break;
+
         case 'Professores':
           data = await getUsuariosPorCategoria('professor');
           break;
+
         case 'Monitores':
           data = await getUsuariosPorCategoria('monitor');
           break;
+          
         case 'Admins':
           data = await getUsuariosPorCategoria('admin');
           break;
+
         default:
           throw new Error(`Tipo de dado desconhecido: ${dataType}`);
       }
@@ -180,11 +186,9 @@ const DashboardPage: React.FC = () => {
     return <div className="text-center text-red-500 dark:text-red-400 mt-10 p-4">{error || 'Não foi possível carregar os dados do dashboard.'}</div>;
   }
 
-  const turmasLabel = 'Minhas Turmas';
-
   const statCards = [
     { title: 'Avaliações Realizadas', value: stats.avaliacoesRealizadas, icon: ClipboardCheckIcon, color: 'blue' },
-    { title: turmasLabel, value: stats.turmasUsuario, icon: BookOpenIcon, color: 'green' },
+    { title: 'Minhas Turmas', value: stats.turmasUsuario, icon: BookOpenIcon, color: 'green' },
     { title: 'Alunos', value: stats.alunosTotal, icon: UsersIcon, color: 'yellow' },
     { title: 'Professores', value: stats.professoresTotal, icon: AcademicCapIcon, color: 'purple' },
     { title: 'Monitores', value: stats.monitoresTotal, icon: UserGroupIcon, color: 'pink' },

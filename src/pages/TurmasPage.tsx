@@ -32,20 +32,54 @@ export function TurmasPage() {
   // FILTROS E BUSCA
   // ============================================================================
 
+
+  // Como nem sempre vem membros, vamos usar um fallback seguro
+  // Se "membros" não existe, considera apenas professor_id
+  type PapelTurma = 'professor' | 'monitor' | 'aluno' | 'admin';
+  interface TurmaMembroLite {
+    user_id: string;
+    papel: PapelTurma;
+    status: string;
+  }
+
+  // Lógica igual ao Dashboard: identifica o papel do usuário em cada turma
+  function getPapelNaTurma(turma: { membros?: TurmaMembroLite[]; professor_id: string; papel?: PapelTurma; }, userId: string): PapelTurma | null {
+    // 1. Se vier "papel" (como no getTurmasParaDashboard), use ele
+    if (turma.papel) return turma.papel;
+    // 2. Se vier membros, procure o papel do usuário
+    if (Array.isArray(turma.membros)) {
+      const membro = turma.membros.find((m) => m.user_id === userId && m.status === 'ativo');
+      if (membro) return membro.papel;
+    }
+    // 3. Se for professor
+    if (turma.professor_id === userId) return 'professor';
+    // 4. Fallback: se não há membros, mas a turma está na lista (como no getTurmasParaDashboard), e o usuário está tentando visualizar, assume papel 'aluno'
+    // Isso cobre o caso de turmas retornadas por getTurmasParaDashboard, que não trazem membros nem papel, mas o usuário faz parte
+    if (!turma.membros && !turma.papel && turma.professor_id !== userId) return 'aluno';
+    return null;
+  }
+
+  // Filtra apenas as turmas em que o usuário realmente pertence (igual Dashboard)
   const turmasFiltradas = turmas.filter(turma => {
-    if (!searchTerm) return true;
-    
-    const termo = searchTerm.toLowerCase();
-    return (
-      turma.nome.toLowerCase().includes(termo) ||
-      turma.descricao?.toLowerCase().includes(termo) ||
-      (typeof turma.professor?.nome === 'string' && turma.professor.nome.toLowerCase().includes(termo)) ||
-      turma.instituicao?.toLowerCase().includes(termo)
-    );
+    const papel = getPapelNaTurma(turma, user?.id ?? '');
+    if (!papel) return false;
+    if (searchTerm) {
+      const termo = searchTerm.toLowerCase();
+      const match = (
+        turma.nome.toLowerCase().includes(termo) ||
+        turma.descricao?.toLowerCase().includes(termo) ||
+        (typeof turma.professor?.nome === 'string' && turma.professor.nome.toLowerCase().includes(termo)) ||
+        turma.instituicao?.toLowerCase().includes(termo)
+      );
+      if (!match) return false;
+    }
+    return true;
   });
 
-  const minhasTurmas = turmasFiltradas.filter(t => t.professor_id === user?.id);
-  const turmasAluno = turmasFiltradas.filter(t => t.professor_id !== user?.id);
+  const minhasTurmasProfessor = turmasFiltradas.filter(t => getPapelNaTurma(t, user?.id ?? '') === 'professor');
+  const minhasTurmasMonitor = turmasFiltradas.filter(t => getPapelNaTurma(t, user?.id ?? '') === 'monitor');
+  const minhasTurmasAluno = turmasFiltradas.filter(t => getPapelNaTurma(t, user?.id ?? '') === 'aluno');
+  const minhasTurmasAdmin = turmasFiltradas.filter(t => getPapelNaTurma(t, user?.id ?? '') === 'admin');
 
   // ============================================================================
   // AÇÕES
@@ -313,57 +347,78 @@ export function TurmasPage() {
 
       {/* Conteúdo */}
       <div className="space-y-8">
-        {/* Minhas turmas (como professor) */}
-        {user?.categoria !== 'aluno' && (
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              Como Professor ({minhasTurmas.length})
-            </h2>
-            
-            {minhasTurmas.length > 0 ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-                {minhasTurmas.map(turma => (
-                  <TurmaCard 
-                    key={turma.id} 
-                    turma={turma} 
-                    isMinhaTurma={true}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Nenhuma turma criada ainda
-                </h3>
-                <p className="text-gray-600 mb-4">
-                  Crie sua primeira turma para começar a avaliar alunos
-                </p>
-                <Link to="/turmas/nova">
-                  <Button>Criar Primeira Turma</Button>
-                </Link>
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* Turmas como aluno */}
-        {turmasAluno.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-4">
-              Como Aluno ({turmasAluno.length})
-            </h2>
-            
-            <div className="space-y-4">
-              {turmasAluno.map(turma => (
-                <TurmaCard 
-                  key={turma.id} 
-                  turma={turma} 
-                  isMinhaTurma={false}
-                />
-              ))}
-            </div>
+      {/* Turmas como Professor */}
+      {minhasTurmasProfessor.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            Como Professor ({minhasTurmasProfessor.length})
+          </h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
+            {minhasTurmasProfessor.map(turma => (
+              <TurmaCard 
+                key={turma.id} 
+                turma={turma} 
+                isMinhaTurma={true}
+              />
+            ))}
           </div>
-        )}
+        </div>
+      )}
+
+      {/* Turmas como Monitor */}
+      {minhasTurmasMonitor.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            Como Monitor ({minhasTurmasMonitor.length})
+          </h2>
+          <div className="space-y-4">
+            {minhasTurmasMonitor.map(turma => (
+              <TurmaCard 
+                key={turma.id} 
+                turma={turma} 
+                isMinhaTurma={false}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Turmas como Aluno */}
+      {minhasTurmasAluno.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            Como Aluno ({minhasTurmasAluno.length})
+          </h2>
+          <div className="space-y-4">
+            {minhasTurmasAluno.map(turma => (
+              <TurmaCard 
+                key={turma.id} 
+                turma={turma} 
+                isMinhaTurma={false}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Turmas como Administrador */}
+      {minhasTurmasAdmin.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            Como Administrador ({minhasTurmasAdmin.length})
+          </h2>
+          <div className="space-y-4">
+            {minhasTurmasAdmin.map(turma => (
+              <TurmaCard 
+                key={turma.id} 
+                turma={turma} 
+                isMinhaTurma={false}
+              />
+            ))}
+          </div>
+        </div>
+      )}
 
         {/* Estado vazio total */}
         {turmas.length === 0 && (
