@@ -181,3 +181,12 @@ html:not(.dark) .hover\:bg-gray-50:hover {
 .dark .hover\:bg-gray-600:hover {
   background-color: #4b5563 !important;
 }
+
+.dark .text-yellow-300 {
+  color: #fef08a !important;
+}
+
+html:not(.dark) .text-yellow-300 {
+  color: #5a4a0c !important;
+}
+

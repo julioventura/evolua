@@ -4,6 +4,7 @@ import { useAuth } from '../contexts/AuthContext'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
+import { useTurmas } from '../hooks/useTurmas'
 import type { RegisterData } from '../types'
 
 export const RegisterPage: React.FC = () => {
@@ -16,10 +17,12 @@ export const RegisterPage: React.FC = () => {
     cidade: '',
     estado: ''
   })
+  const [codigoConvite, setCodigoConvite] = useState('');
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [checking, setChecking] = useState(true)
+  const { ingressarComCodigo } = useTurmas();
   
   const authContext = useAuth()
   const navigate = useNavigate()
@@ -52,6 +55,14 @@ export const RegisterPage: React.FC = () => {
 
     try {
       await signUp(formData)
+      // Se o usuário informou um código de convite, tenta ingressar na turma
+      if (codigoConvite.trim()) {
+        try {
+          await ingressarComCodigo(codigoConvite.trim());
+        } catch (err) {
+          setError('Conta criada, mas não foi possível ingressar na turma: ' + (err instanceof Error ? err.message : 'Erro desconhecido'));
+        }
+      }
       setSuccess(true)
       setTimeout(() => {
         navigate('/login')
@@ -235,6 +246,25 @@ export const RegisterPage: React.FC = () => {
                 placeholder="Digite seu estado"
                 className="mt-1"
               />
+            </div>
+
+            {/* Campo de código de convite destacado */}
+            <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-400 dark:border-blue-600 rounded-lg shadow-inner">
+              <label htmlFor="codigoConvite" className="block text-base font-semibold text-blue-600 dark:text-blue-600 mb-1">
+                Código de convite para turma (opcional)
+              </label>
+              <Input
+                id="codigoConvite"
+                name="codigoConvite"
+                type="text"
+                autoComplete="off"
+                value={codigoConvite}
+                onChange={e => setCodigoConvite(e.target.value.toUpperCase())}
+                placeholder="Código da turma"
+                className="mt-1 text-lg font-mono tracking-widest text-yellow-300 dark:text-yellow-300 border-blue-400 focus:border-blue-600 focus:ring-blue-500"
+                maxLength={6}
+              />
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">Se você recebeu um código de convite, insira aqui para entrar automaticamente na turma após o cadastro.</p>
             </div>
           </div>
 
