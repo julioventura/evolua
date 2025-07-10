@@ -10,6 +10,7 @@ export interface User {
   id: string;
   email: string;
   nome: string;
+  full_name?: string;
   avatar_url?: string;
   categoria: 'aluno' | 'professor' | 'admin' | 'monitor' | 'outro';
   instituicao?: string;
@@ -44,6 +45,7 @@ export interface RegisterData {
 
 export interface AuthContextType {
   user: User | null;
+  loading: boolean;
   signIn: (credentials: LoginCredentials) => Promise<void>;
   signUp: (data: RegisterData) => Promise<void>;
   signOut: () => Promise<void>;

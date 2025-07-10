@@ -24,20 +24,25 @@ export function TurmaFormPage() {
   // ESTADO DO FORMULÁRIO
   // ============================================================================
 
-  const [formData, setFormData] = useState<CreateTurmaData & { configuracoes: TurmaConfiguracoes }>({
-    nome: '',
-    descricao: '',
-    instituicao: '',
-    periodo: '',
-    max_alunos: 50,
-    cor_tema: '#3b82f6',
-    configuracoes: {
-      permite_auto_inscricao: true,
-      permite_monitor: true,
-      avaliacao_anonima: false,
-      notificacoes_ativas: true
+  const [formData, setFormData] = useState<CreateTurmaData & { configuracoes: TurmaConfiguracoes }>(
+    {
+      nome: '',
+      descricao: '',
+      instituicao: '',
+      periodo: '',
+      max_alunos: 50,
+      cor_tema: '#3b82f6',
+      ativa: true,
+      ano: new Date().getFullYear(),
+      semestre: 1,
+      configuracoes: {
+        permite_auto_inscricao: true,
+        permite_monitor: true,
+        avaliacao_anonima: false,
+        notificacoes_ativas: true
+      }
     }
-  });
+  );
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -53,6 +58,7 @@ export function TurmaFormPage() {
 
   useEffect(() => {
     if (isEditing && turmaAtual) {
+      const conf = turmaAtual.configuracoes as Partial<TurmaConfiguracoes> || {};
       setFormData({
         nome: turmaAtual.nome,
         descricao: turmaAtual.descricao || '',
@@ -60,7 +66,15 @@ export function TurmaFormPage() {
         periodo: turmaAtual.periodo || '',
         max_alunos: turmaAtual.max_alunos,
         cor_tema: turmaAtual.cor_tema,
-        configuracoes: turmaAtual.configuracoes
+        ativa: turmaAtual.ativa,
+        ano: turmaAtual.ano,
+        semestre: turmaAtual.semestre,
+        configuracoes: {
+          permite_auto_inscricao: typeof conf.permite_auto_inscricao === 'boolean' ? conf.permite_auto_inscricao : true,
+          permite_monitor: typeof conf.permite_monitor === 'boolean' ? conf.permite_monitor : true,
+          avaliacao_anonima: typeof conf.avaliacao_anonima === 'boolean' ? conf.avaliacao_anonima : false,
+          notificacoes_ativas: typeof conf.notificacoes_ativas === 'boolean' ? conf.notificacoes_ativas : true
+        }
       });
     }
   }, [isEditing, turmaAtual]);
@@ -248,7 +262,6 @@ export function TurmaFormPage() {
                 type="text"
                 value={formData.nome}
                 onChange={(e) => handleInputChange('nome', e.target.value)}
-                placeholder="Ex: Odontologia Clínica 2025.1"
                 className={errors.nome ? 'border-red-500' : ''}
               />
               {errors.nome && (

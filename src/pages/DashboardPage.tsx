@@ -33,7 +33,6 @@ import { ptBR } from 'date-fns/locale';
 const DashboardPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
   // Variável global de ambiente para facilitar testes de admin
-  // @ts-ignore
   //
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [atividades, setAtividades] = useState<AtividadeRecente[]>([]);
@@ -62,7 +61,7 @@ const DashboardPage: React.FC = () => {
         ]);
         setStats(statsData);
         setAtividades(atividadesData);
-      } catch (err: any) {
+      } catch {
         setError('Falha ao carregar os dados do dashboard. Tente novamente mais tarde.');
         setStats(null);
         setAtividades([]);
@@ -119,8 +118,8 @@ const DashboardPage: React.FC = () => {
           throw new Error(`Tipo de dado desconhecido: ${dataType}`);
       }
       setModalData(data);
-    } catch (err: any) {
-      setModalError(`Falha ao carregar dados: ${err.message}`);
+    } catch {
+      setModalError('Falha ao carregar dados.');
     } finally {
       setModalLoading(false);
     }
@@ -133,15 +132,18 @@ const DashboardPage: React.FC = () => {
 
     return (
       <ul className="space-y-3 max-h-96 overflow-y-auto pr-2">
-        {modalData.map((item: any) => (
-          <li key={item.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600">
-            <p className="font-semibold text-gray-800 dark:text-gray-100">{item.nome || item.titulo || item.full_name}</p>
-            {item.email && <p className="text-sm text-gray-600 dark:text-gray-300">{item.email}</p>}
-            {item.created_at && <p className="text-sm text-gray-500 dark:text-gray-400">Criado em: {format(new Date(item.created_at), 'dd/MM/yyyy', { locale: ptBR })}</p>}
-            {item.data_limite && <p className="text-sm text-gray-500 dark:text-gray-400">Data Limite: {format(new Date(item.data_limite), 'dd/MM/yyyy', { locale: ptBR })}</p>}
-            {item.turma_nome && <p className="text-xs text-gray-500 dark:text-gray-400">Turma: {item.turma_nome}</p>}
-          </li>
-        ))}
+        {modalData.map((item) => {
+          const data = item as Partial<Usuario & Turma & Avaliacao>;
+          return (
+            <li key={data.id} className="p-3 bg-gray-50 dark:bg-gray-700 rounded-md border border-gray-200 dark:border-gray-600">
+              <p className="font-semibold text-gray-800 dark:text-gray-100">{data.nome || data.titulo || data.full_name}</p>
+              {data.email && <p className="text-sm text-gray-600 dark:text-gray-300">{data.email}</p>}
+              {data.created_at && <p className="text-sm text-gray-500 dark:text-gray-400">Criado em: {format(new Date(data.created_at), 'dd/MM/yyyy', { locale: ptBR })}</p>}
+              {data.data_limite && <p className="text-sm text-gray-500 dark:text-gray-400">Data Limite: {format(new Date(data.data_limite), 'dd/MM/yyyy', { locale: ptBR })}</p>}
+              {data.turma_nome && <p className="text-xs text-gray-500 dark:text-gray-400">Turma: {data.turma_nome}</p>}
+            </li>
+          );
+        })}
       </ul>
     );
   };
@@ -152,13 +154,18 @@ const DashboardPage: React.FC = () => {
     setUsuariosError(null);
     try {
       // Busca todos os usuários agrupados por categoria
-      const categorias = ['admin', 'professor', 'monitor', 'aluno'];
-      const result: Record<string, Usuario[]> = {};
+      const categorias = ['admin', 'professor', 'monitor', 'aluno'] as const;
+      const result: Record<typeof categorias[number], Usuario[]> = {
+        admin: [],
+        professor: [],
+        monitor: [],
+        aluno: []
+      };
       for (const cat of categorias) {
         result[cat] = await getUsuariosPorCategoria(cat);
       }
       setUsuariosPorCategoria(result);
-    } catch (err: any) {
+    } catch {
       setUsuariosError('Erro ao buscar usuários.');
     } finally {
       setUsuariosLoading(false);

@@ -49,7 +49,7 @@ interface UseTurmasReturn {
   adicionarMembro: (turmaId: string, userId: string, papel?: TurmaMembro['papel']) => Promise<void>;
   removerMembro: (turmaId: string, userId: string) => Promise<void>;
   atualizarPapelMembro: (turmaId: string, userId: string, papel: TurmaMembro['papel']) => Promise<void>;
-  verificarMembro: (turmaId: string) => Promise<TurmaMembro | null>;
+  verificarMembro: (turmaId: string) => Promise<boolean>;
   
   // Ações de Convite
   ingressarComCodigo: (codigo: string) => Promise<{ turma: Turma; membro: TurmaMembro }>;
@@ -271,15 +271,16 @@ export function useTurmas(): UseTurmasReturn {
     }
   }, [clearError, handleError]);
 
-  const verificarMembro = useCallback(async (turmaId: string): Promise<TurmaMembro | null> => {
+  const verificarMembro = useCallback(async (turmaId: string): Promise<boolean> => {
     try {
       clearError();
-      return await isMembro(turmaId);
+      if (!user) return false;
+      return await isMembro(turmaId, user.id);
     } catch (err) {
       handleError(err, 'Erro ao verificar membro');
-      return null;
+      return false;
     }
-  }, [clearError, handleError]);
+  }, [clearError, handleError, user]);
 
   // ============================================================================
   // AÇÕES DE CONVITE

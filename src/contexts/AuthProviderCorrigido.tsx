@@ -195,7 +195,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     signIn,
     signUp,
-    signOut
+    signOut,
+    loading: false // ajuste conforme seu estado real de loading
   }
 
   return (

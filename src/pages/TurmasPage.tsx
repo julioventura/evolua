@@ -39,7 +39,7 @@ export function TurmasPage() {
     return (
       turma.nome.toLowerCase().includes(termo) ||
       turma.descricao?.toLowerCase().includes(termo) ||
-      turma.professor?.nome.toLowerCase().includes(termo) ||
+      (typeof turma.professor?.nome === 'string' && turma.professor.nome.toLowerCase().includes(termo)) ||
       turma.instituicao?.toLowerCase().includes(termo)
     );
   });

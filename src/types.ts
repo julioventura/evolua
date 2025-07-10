@@ -16,6 +16,19 @@ export interface Usuario {
   estado?: string;
 }
 
+// =========================
+// Reexports dos tipos globais do projeto
+// =========================
+export type { 
+  User, 
+  AuthContextType, 
+  LoginCredentials, 
+  RegisterData, 
+  Profile, 
+  UpdateProfileData, 
+  TurmaConfiguracoes
+} from './types/index';
+
 // Estrutura principal de uma Turma
 export interface Turma {
   id: string;
@@ -29,12 +42,13 @@ export interface Turma {
   ativa: boolean;
   codigo_convite: string;
   max_alunos?: number;
-  configuracoes?: Record<string, any>;
+  configuracoes?: { [key: string]: unknown };
   cor_tema?: string;
   // Campos adicionados para compatibilidade com componentes
   periodo?: string;
   instituicao?: string;
   total_atividades?: number;
+  total_alunos?: number;
   professor?: Usuario;
 }
 
@@ -92,7 +106,7 @@ export interface AtividadeRecente {
   tipo: string; // Ex: 'CRIOU_TURMA', 'ADICIONOU_MEMBRO'
   detalhes: {
     descricao: string; // Ex: "Você criou a turma 'Cálculo I'"
-    [key: string]: any; // Outros dados relevantes
+    [key: string]: unknown; // Outros dados relevantes
   };
   usuario?: Pick<Usuario, 'id' | 'full_name' | 'avatar_url'>; // Dados do usuário que realizou a ação
   turma?: Pick<Turma, 'id' | 'nome'>; // Dados da turma relacionada
