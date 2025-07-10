@@ -1,26 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
+import { useNavigate } from 'react-router-dom';
+// import { Button } from '../components/ui/Button';
+// import { Input } from '../components/ui/Input';
 import { supabase } from '../lib/supabaseClient';
-import type { User } from '../types/index';
+import type { User as BaseUser } from '../types/index';
+
+// Extende o tipo User para incluir whatsapp opcional
+type User = BaseUser & {
+  whatsapp?: string | null;
+};
 
 export const MembrosPage: React.FC = () => {
+  const navigate = useNavigate();
   const [membros, setMembros] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [novoEmail, setNovoEmail] = useState('');
-  const [success, setSuccess] = useState<string | null>(null);
 
   const fetchMembros = async () => {
     setLoading(true);
     setError(null);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('nome', { ascending: true });
-    if (error) setError('Erro ao carregar membros.');
-    else setMembros(data || []);
-    setLoading(false);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, nome, categoria, email, whatsapp')
+        .order('nome', { ascending: true });
+      if (error) throw error;
+      setMembros((data as User[]) || []);
+    } catch {
+      setError('Erro ao carregar membros.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -28,54 +38,62 @@ export const MembrosPage: React.FC = () => {
   }, []);
 
 
-  // Função para enviar convite por email
-  const handleEnviarConvite = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(null);
-    if (!novoEmail) {
-      setError('Preencha o email.');
-      setLoading(false);
-      return;
-    }
-    // Gera link de convite (pode ser customizado)
-    const subject = encodeURIComponent('Convite para participar do e-volua');
-    const body = encodeURIComponent(
-      `Olá!\n\nVocê foi convidado para participar do sistema e-volua.\n\nAcesse o link para se cadastrar: https://evolua.app/registro?email=${novoEmail}\n\nApós o cadastro, seu acesso será liberado.\n\nSe não reconhece este convite, ignore este email.`
-    );
-    window.open(`mailto:${novoEmail}?subject=${subject}&body=${body}`);
-    setSuccess('Emaiil iniciado! Envie o email pelo seu programa de emails.');
-    setNovoEmail('');
-    setLoading(false);
-  };
-
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div className="w-full max-w-full px-2 md:px-8 lg:px-16 xl:px-32 mx-auto my-10">
       <h1 className="text-2xl font-bold mb-6">Membros</h1>
-      <form onSubmit={handleEnviarConvite} className="flex gap-2 mb-6">
-        <Input
-          type="email"
-          placeholder="Email do convidado"
-          value={novoEmail}
-          onChange={e => setNovoEmail(e.target.value)}
-          className="flex-1"
-        />
-        <Button type="submit" disabled={loading}>Enviar convite</Button>
-      </form>
+
       {error && <div className="text-red-500 mb-4">{error}</div>}
-      {success && <div className="text-green-600 mb-4">{success}</div>}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4 overflow-x-auto">
+       
         {loading ? (
           <div>Carregando...</div>
         ) : (
-          <ul>
-            {membros.map(m => (
-              <li key={m.id} className="py-2 border-b border-gray-200 dark:border-gray-700 text-gray-300">
-                <span className="font-medium">{m.nome}</span> <span className="text-gray-500">({m.email})</span>
-              </li>
-            ))}
-          </ul>
+          <div>
+            <table className="min-w-full max-w-full table-auto divide-y divide-gray-200 dark:divide-gray-700">
+              <thead>
+                <tr className="bg-gray-100 dark:bg-gray-700">
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Nome</th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Categoria</th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Email</th>
+                  <th className="px-4 py-2 text-left text-xs font-semibold text-gray-700 dark:text-gray-200 uppercase tracking-wider">Whatsapp</th>
+                </tr>
+              </thead>
+              <tbody>
+                {membros.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="text-center py-4 text-gray-500 dark:text-gray-400">Nenhum membro encontrado.</td>
+                  </tr>
+                ) : (
+                  membros.map((m, idx) => (
+                    <tr
+                      key={m.id}
+                      className={
+                        (idx % 2 === 0
+                          ? 'bg-white dark:bg-gray-800'
+                          : 'bg-gray-50 dark:bg-gray-900') +
+                        ' cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900 transition-colors'
+                      }
+                      onClick={() => navigate(`/membros/${m.id}`)}
+                      tabIndex={0}
+                      aria-label={`Ver detalhes de ${m.nome}`}
+                    >
+                      <td className="px-4 py-2 text-gray-900 dark:text-gray-100 font-medium whitespace-nowrap">{m.nome}</td>
+                      <td className="px-4 py-2 text-gray-700 dark:text-gray-300 whitespace-nowrap">{m.categoria || '-'}</td>
+                      <td className="px-4 py-2 text-gray-700 dark:text-gray-300 whitespace-nowrap">{m.email}</td>
+                      <td className="px-4 py-2 text-gray-700 dark:text-gray-300 whitespace-nowrap">{m.whatsapp || '-'}</td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan={4} className="px-4 py-2 text-right text-sm text-gray-600 dark:text-gray-300 font-semibold border-t border-gray-200 dark:border-gray-700">
+                    Total de membros: {membros.length}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         )}
       </div>
     </div>

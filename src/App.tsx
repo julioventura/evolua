@@ -1,6 +1,8 @@
-import React, { Suspense } from 'react'
+import React, { Suspense } from 'react';
 // Lazy load para MembrosPage
 const LazyMembrosPage = React.lazy(() => import('./pages/MembrosPage'));
+import MembroPage from './pages/MembroPage';
+// ...existing code...
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthProvider'
 import { ThemeProvider } from './contexts/ThemeProvider'
@@ -108,6 +110,15 @@ function App() {
                     <Suspense fallback={<div>Carregando...</div>}>
                       <LazyMembrosPage />
                     </Suspense>
+                  </ProtectedRoute>
+                } 
+              />
+              {/* Página de detalhes de Membro */}
+              <Route 
+                path="/membros/:id" 
+                element={
+                  <ProtectedRoute>
+                    <MembroPage />
                   </ProtectedRoute>
                 } 
               />
