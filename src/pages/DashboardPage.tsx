@@ -1,11 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  getDashboardStats,
-  
+  getDashboardStats,  
   getTurmasParaDashboard,
   getUsuariosPorCategoria,
-
   getAtividadesRecentes
 } from '../lib/turmasService2';
 import { getAvaliacoesDoUsuario } from '../lib/avaliacoesService';
@@ -20,7 +18,6 @@ import {
   CogIcon,
   DocumentChartBarIcon as DocumentReportIcon,
   PlusIcon,
-
   LinkIcon,
   DocumentTextIcon,
   FolderIcon
@@ -29,6 +26,7 @@ import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Modal } from '../components/ui/Modal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { Link } from 'react-router-dom';
 
 const DashboardPage: React.FC = () => {
   const { user, loading: authLoading } = useAuth();
@@ -115,7 +113,7 @@ const DashboardPage: React.FC = () => {
         case 'Monitores':
           data = await getUsuariosPorCategoria('monitor');
           break;
-          
+
         case 'Admins':
           data = await getUsuariosPorCategoria('admin');
           break;
@@ -209,23 +207,40 @@ const DashboardPage: React.FC = () => {
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {statCards.map(card => (
-          <div
-            key={card.title}
-            onClick={() => handleCardClick(card.title)}
-            className={`bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-${card.color}-500`}
-          >
-            <div className="flex items-center">
-              <div className={`p-3 rounded-full bg-${card.color}-100 dark:bg-gray-700 mr-4`}>
-                <card.icon className={`h-7 w-7 text-${card.color}-600 dark:text-${card.color}-300`} />
-              </div>
-              <div>
-                <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{card.title}</p>
-                <p className="text-3xl font-bold dark:text-white">{card.value ?? '0'}</p>
+        {statCards.map(card => {
+          const isTurmas = card.title === 'Minhas Turmas';
+          const cardContent = (
+            <div
+              className={`bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-${card.color}-500`}
+            >
+              <div className="flex items-center">
+                <div className={`p-3 rounded-full bg-${card.color}-100 dark:bg-gray-700 mr-4`}>
+                  <card.icon className={`h-7 w-7 text-${card.color}-600 dark:text-${card.color}-300`} />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{card.title}</p>
+                  <p className="text-3xl font-bold dark:text-white">{card.value ?? '0'}</p>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+          return isTurmas ? (
+            <Link to="/turmas" key={card.title} tabIndex={0} aria-label="Minhas Turmas">
+              {cardContent}
+            </Link>
+          ) : (
+            <div
+              key={card.title}
+              onClick={() => handleCardClick(card.title)}
+              className="focus:outline-none"
+              tabIndex={0}
+              role="button"
+              aria-label={card.title}
+            >
+              {cardContent}
+            </div>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
