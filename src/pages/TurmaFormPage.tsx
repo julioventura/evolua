@@ -16,7 +16,7 @@ export function TurmaFormPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { turmaAtual, loadTurma, createTurma, updateTurma, loading, error } = useTurmas();
-  
+
   const isEditing = Boolean(id);
   const [saving, setSaving] = useState(false);
 
@@ -120,7 +120,7 @@ export function TurmaFormPage() {
       ...prev,
       [field]: value
     }));
-    
+
     // Limpar erro do campo alterado
     if (errors[field]) {
       setErrors(prev => {
@@ -143,14 +143,14 @@ export function TurmaFormPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     try {
       setSaving(true);
-      
+
       if (isEditing && id) {
         const updateData: UpdateTurmaData = {
           nome: formData.nome,
@@ -161,7 +161,7 @@ export function TurmaFormPage() {
           cor_tema: formData.cor_tema,
           configuracoes: formData.configuracoes
         };
-        
+
         await updateTurma(id, updateData);
         navigate(`/turmas/${id}`);
       } else {
@@ -210,7 +210,7 @@ export function TurmaFormPage() {
           <p className="text-gray-600">
             Você não tem permissão para editar esta turma.
           </p>
-          <Button 
+          <Button
             onClick={() => navigate('/turmas')}
             className="mt-4"
           >
@@ -229,7 +229,7 @@ export function TurmaFormPage() {
           {isEditing ? 'Editar Turma' : 'Nova Turma'}
         </h1>
         <p className="text-gray-600">
-          {isEditing 
+          {isEditing
             ? 'Atualize as informações da sua turma'
             : 'Crie uma nova turma para começar a avaliar alunos'
           }
@@ -250,11 +250,11 @@ export function TurmaFormPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Informações Básicas
           </h2>
-          
+
           <div className="space-y-4">
             {/* Nome */}
             <div>
-              <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="nome" className="block text-sm font-medium dark:text-gray-400 mb-1">
                 Nome da Turma *
               </label>
               <Input
@@ -271,7 +271,7 @@ export function TurmaFormPage() {
 
             {/* Descrição */}
             <div>
-              <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="descricao" className="block text-sm dark:text-gray-400 font-medium mb-1">
                 Descrição
               </label>
               <textarea
@@ -280,14 +280,14 @@ export function TurmaFormPage() {
                 onChange={(e) => handleInputChange('descricao', e.target.value)}
                 placeholder="Descreva o conteúdo e objetivos da turma"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                className="flex w-full rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 ring-offset-white dark:ring-offset-gray-800 placeholder:text-gray-500 dark:placeholder:text-gray-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               />
             </div>
 
             {/* Instituição e Período */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="instituicao" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="instituicao" className="block text-sm font-medium dark:text-gray-400 mb-1">
                   Instituição
                 </label>
                 <Input
@@ -295,12 +295,11 @@ export function TurmaFormPage() {
                   type="text"
                   value={formData.instituicao}
                   onChange={(e) => handleInputChange('instituicao', e.target.value)}
-                  placeholder="Ex: UFRJ"
                 />
               </div>
-              
+
               <div>
-                <label htmlFor="periodo" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="periodo" className="block text-sm font-medium dark:text-gray-400 mb-1">
                   Período
                 </label>
                 <Input
@@ -308,7 +307,6 @@ export function TurmaFormPage() {
                   type="text"
                   value={formData.periodo}
                   onChange={(e) => handleInputChange('periodo', e.target.value)}
-                  placeholder="Ex: 2025.1"
                   className={errors.periodo ? 'border-red-500' : ''}
                 />
                 {errors.periodo && (
@@ -320,7 +318,7 @@ export function TurmaFormPage() {
             {/* Max Alunos e Cor */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label htmlFor="max_alunos" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="max_alunos" className="block text-sm font-medium dark:text-gray-400 mb-1">
                   Máximo de Alunos *
                 </label>
                 <Input
@@ -336,9 +334,9 @@ export function TurmaFormPage() {
                   <p className="text-red-600 text-sm mt-1">{errors.max_alunos}</p>
                 )}
               </div>
-              
+
               <div>
-                <label htmlFor="cor_tema" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="cor_tema" className="block text-sm font-medium dark:text-gray-400 mb-1">
                   Cor da Turma
                 </label>
                 <div className="flex items-center gap-3">
@@ -367,7 +365,7 @@ export function TurmaFormPage() {
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
             Configurações da Turma
           </h2>
-          
+
           <div className="space-y-4">
             {[
               {
@@ -420,7 +418,7 @@ export function TurmaFormPage() {
           >
             Cancelar
           </Button>
-          
+
           <Button
             type="submit"
             disabled={saving}
