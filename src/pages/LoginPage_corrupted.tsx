@@ -17,7 +17,7 @@ export const LoginPage: React.FC = () => {
   const [error, setError] = useState('')
   const [checking, setChecking] = useState(true)
   
-  const { signIn, user, loading: authLoading } = useAuth()
+  const { user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
 
   // Verificar se o usuário já está logado
@@ -34,6 +34,28 @@ export const LoginPage: React.FC = () => {
       setChecking(false)
     }
   }, [user, authLoading, navigate, loading])
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [checking, setChecking] = useState(true)
+  
+  const { signIn, user } = useAuth()
+  const navigate = useNavigate()
+
+  // Verificar se o usuário já está logado
+  useEffect(() => {
+    console.log('🎯 LoginPage useEffect - user:', user?.email, 'loading:', loading);
+    if (user) {
+      // Se o usuário já está logado, redirecionar para o dashboard
+      console.log('✅ Usuário logado, redirecionando...');
+      setLoading(false)
+      navigate('/dashboard', { replace: true })
+    } else {
+      // Se não está logado, mostrar a página de login
+      console.log('❌ Usuário não logado, mostrando login');
+      setChecking(false)
+    }
+  }, [user, navigate])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

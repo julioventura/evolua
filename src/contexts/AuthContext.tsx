@@ -47,7 +47,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Função para carregar dados do perfil da tabela profiles
   const loadUserProfile = useCallback(async (authUser: User): Promise<AppUser> => {
+    console.log('📊 loadUserProfile iniciado para:', authUser.email);
+    console.log('🔍 User ID:', authUser.id);
+    
+    // Primeiro criar o usuário base com dados do auth
+    const userWithProfile = {
+      ...authUser,
+      nome: authUser.user_metadata?.full_name || authUser.email,
+      categoria: authUser.app_metadata?.userrole || 'aluno',
+    } as AppUser;
+    
+    // Tentar carregar dados do perfil, mas com timeout e fallback
     try {
+      console.log('🔍 Tentando carregar perfil do banco...');
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
@@ -55,25 +67,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .single();
 
       if (error) {
-        console.error('Erro ao carregar perfil:', error);
-        return authUser as AppUser;
+        console.warn('⚠️ Erro ao carregar perfil (usando fallback):', error.message);
+        return userWithProfile;
       }
 
-      // Combinar dados do auth com dados do perfil
-      return {
-        ...authUser,
-        nome: profile?.nome || authUser.user_metadata?.full_name || authUser.email,
-        categoria: profile?.categoria || authUser.app_metadata?.userrole || 'aluno',
-        whatsapp: profile?.whatsapp,
-        cidade: profile?.cidade,
-        estado: profile?.estado,
-        instituicao: profile?.instituicao,
-        registro_profissional: profile?.registro_profissional,
-      } as AppUser;
+      if (profile) {
+        console.log('✅ Perfil carregado da DB:', profile);
+        // Atualizar com dados do perfil
+        userWithProfile.nome = profile.nome || userWithProfile.nome;
+        userWithProfile.categoria = profile.categoria || userWithProfile.categoria;
+        userWithProfile.whatsapp = profile.whatsapp;
+        userWithProfile.cidade = profile.cidade;
+        userWithProfile.estado = profile.estado;
+        userWithProfile.instituicao = profile.instituicao;
+        userWithProfile.registro_profissional = profile.registro_profissional;
+      }
     } catch (error) {
-      console.error('Erro ao carregar perfil:', error);
-      return authUser as AppUser;
+      console.warn('⚠️ Erro ao carregar perfil (usando fallback):', error);
+      // Continuar com dados básicos
     }
+    
+    console.log('🎯 UserWithProfile final:', userWithProfile);
+    return userWithProfile;
   }, []);
 
   useEffect(() => {
@@ -96,21 +111,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Ouve mudanças no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
+      console.log('🎯 AuthStateChange:', _event, newSession?.user?.email);
+      
       if (_event === 'SIGNED_IN' && newSession?.user) {
+        console.log('📝 Logando atividade...');
         logAtividade(
           newSession.user.id,
           'USER_LOGIN',
           { descricao: 'Usuário realizou login.' }
         );
         
+        console.log('👤 Carregando perfil do usuário...');
         const userWithProfile = await loadUserProfile(newSession.user);
+        console.log('✅ Perfil carregado:', userWithProfile?.nome);
+        console.log('🔄 Chamando setUser com:', userWithProfile?.email);
         setUser(userWithProfile);
+        console.log('✅ setUser chamado!');
       } else {
+        console.log('❌ Removendo usuário do estado');
         setUser(null);
       }
       
       setSession(newSession);
       setLoading(false);
+      console.log('🔄 Estado atualizado - loading:', false);
     });
 
     // Limpa a inscrição ao desmontar o componente
@@ -124,8 +148,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (credentials: {email: string, password: string}) => {
+    console.log('🔐 signIn iniciado:', credentials.email);
     const { error } = await supabase.auth.signInWithPassword(credentials);
-    if (error) throw error;
+    if (error) {
+      console.error('❌ Erro no signIn:', error);
+      throw error;
+    }
+    console.log('✅ signIn concluído, aguardando listener...');
+    // O listener onAuthStateChange vai atualizar o estado automaticamente
   };
 
   const signUp = async (data: {email: string, password: string, nome: string, categoria?: string}) => {
