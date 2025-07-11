@@ -34,27 +34,6 @@ export const ConfiguracoesPage: React.FC = () => {
 
           <div className="px-6 py-6">
             <div className="space-y-6">
-              {/* Seção de Aparência */}
-              <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-3">
-                  Aparência
-                </h3>
-                <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        Modo Escuro
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        Alterna entre o tema claro e escuro
-                      </p>
-                    </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Use o botão no canto superior direito
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Seção de Notificações */}
               <div>
@@ -164,6 +143,7 @@ export const ConfiguracoesPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+              
             </div>
           </div>
         </div>

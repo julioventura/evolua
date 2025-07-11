@@ -5,7 +5,6 @@ import MembroPage from './pages/MembroPage';
 // ...existing code...
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './contexts/AuthProvider'
-import { ThemeProvider } from './contexts/ThemeProvider'
 import { Header } from './components/layout/Header'
 import { Footer } from './components/layout/Footer'
 import { LoadingSpinner } from './components/ui/LoadingSpinner'
@@ -39,7 +38,7 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 }
 const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+    <div className="min-h-screen flex flex-col bg-gray-900">
       <Header />
       <main className="flex-1">
         {children}
@@ -52,12 +51,11 @@ const AppLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 function App() {
   return (
     <AuthProvider>
-      <ThemeProvider>
-        <BrowserRouter basename="/evolua">
-          <AppLayout>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/login" element={<LoginPage />} />
+      <BrowserRouter basename="/evolua">
+        <AppLayout>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/login" element={<LoginPage />} />
               <Route path="/register" element={<RegisterPage />} />
               
               {/* Rotas protegidas */}
@@ -148,7 +146,6 @@ function App() {
 
           </AppLayout>
         </BrowserRouter>
-      </ThemeProvider>
     </AuthProvider>
   )
 }

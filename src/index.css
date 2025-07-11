@@ -14,149 +14,82 @@
   --color-primary-950: #172554;
 }
 
-/* CSS customizado para modo claro (agora igual ao escuro) */
-html:not(.dark) .min-h-screen {
+/* CSS customizado - tema único escuro */
+.min-h-screen {
   background: linear-gradient(to bottom, #111827, #1f2937) !important;
 }
 
-html:not(.dark) h1 {
+h1 {
   color: #ffffff !important;
 }
 
-html:not(.dark) p {
+p {
   color: #d1d5db !important;
 }
 
-html:not(.dark) header {
+header {
   background-color: #1f2937 !important;
   border-color: #374151 !important;
 }
 
-html:not(.dark) footer {
+footer {
   background-color: #111827 !important;
   border-color: #374151 !important;
 }
 
-html:not(.dark) .text-gray-500 {
+.text-gray-500 {
   color: #9ca3af !important;
 }
 
-html:not(.dark) .text-gray-600 {
+.text-gray-600 {
   color: #d1d5db !important;
 }
 
-html:not(.dark) .text-gray-700 {
+.text-gray-700 {
   color: #e5e7eb !important;
 }
 
-html:not(.dark) .text-gray-800 {
+.text-gray-800 {
   color: #f3f4f6 !important;
 }
 
-html:not(.dark) .text-gray-900 {
+.text-gray-900 {
   color: #ffffff !important;
 }
 
-html:not(.dark) .bg-gray-50 {
+.bg-gray-50 {
   background-color: #111827 !important;
 }
 
-html:not(.dark) .bg-gray-100 {
+.bg-gray-100 {
   background-color: #374151 !important;
 }
 
-html:not(.dark) .bg-white {
+.bg-white {
   background-color: #1f2937 !important;
 }
 
-html:not(.dark) .bg-yellow-100 {
+.bg-yellow-100 {
   background-color: #451a03 !important;
 }
 
-html:not(.dark) .border-gray-200 {
+.bg-yellow-900 {
+  background-color: #451a03 !important;
+}
+
+.border-gray-200 {
   border-color: #374151 !important;
 }
 
-html:not(.dark) .border-gray-300 {
+.border-gray-300 {
   border-color: #4b5563 !important;
 }
 
-/* CSS customizado para modo escuro */
-.dark .min-h-screen {
-  background: linear-gradient(to bottom, #111827, #1f2937) !important;
-}
-
-.dark h1 {
-  color: #ffffff !important;
-}
-
-.dark p {
-  color: #d1d5db !important;
-}
-
-.dark header {
-  background-color: #1f2937 !important;
+.border-gray-700 {
   border-color: #374151 !important;
 }
 
-.dark footer {
-  background-color: #111827 !important;
-  border-color: #374151 !important;
-}
-
-.dark .text-gray-500 {
-  color: #9ca3af !important;
-}
-
-.dark .text-gray-600 {
-  color: #d1d5db !important;
-}
-
-.dark .text-gray-700 {
-  color: #e5e7eb !important;
-}
-
-.dark .text-gray-800 {
-  color: #f3f4f6 !important;
-}
-
-.dark .text-gray-900 {
-  color: #ffffff !important;
-}
-
-.dark .bg-gray-50 {
-  background-color: #111827 !important;
-}
-
-.dark .bg-gray-100 {
-  background-color: #374151 !important;
-}
-
-.dark .bg-white {
-  background-color: #1f2937 !important;
-}
-
-.dark .bg-yellow-100 {
-  background-color: #451a03 !important;
-}
-
-.dark .bg-yellow-900 {
-  background-color: #451a03 !important;
-}
-
-.dark .border-gray-200 {
-  border-color: #374151 !important;
-}
-
-.dark .border-gray-300 {
-  border-color: #4b5563 !important;
-}
-
-.dark .border-gray-700 {
-  border-color: #374151 !important;
-}
-
-/* Garantir que os botões azuis permaneçam azuis em ambos os modos */
+/* Garantir que os botões azuis permaneçam azuis */
 .bg-primary-600 {
   background-color: #2563eb !important;
 }
@@ -165,28 +98,24 @@ html:not(.dark) .border-gray-300 {
   color: #2563eb !important;
 }
 
-.dark .text-primary-400 {
+.text-primary-400 {
   color: #60a5fa !important;
 }
 
 /* Ajustes específicos para links e botões */
-html:not(.dark) .hover\:bg-gray-50:hover {
+.hover\:bg-gray-50:hover {
   background-color: #111827 !important;
 }
 
-.dark .hover\:bg-gray-700:hover {
+.hover\:bg-gray-700:hover {
   background-color: #374151 !important;
 }
 
-.dark .hover\:bg-gray-600:hover {
+.hover\:bg-gray-600:hover {
   background-color: #4b5563 !important;
 }
 
-.dark .text-yellow-300 {
-  color: #fef08a !important;
-}
-
-html:not(.dark) .text-yellow-300 {
+.text-yellow-300 {
   color: #fef08a !important;
 }
 
