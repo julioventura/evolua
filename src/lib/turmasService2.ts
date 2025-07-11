@@ -24,21 +24,34 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
   console.log('getDashboardStats - userId:', userId);
   
   try {
-    // Contar turmas únicas do usuário (versão simplificada)
+    // Contar turmas únicas do usuário (tanto como professor quanto como membro)
     const turmasUnicas = await getTurmasParaDashboard(userId);
     const turmasUsuario = turmasUnicas.length;
     
     console.log('Turmas do usuário encontradas:', turmasUsuario);
     
-    // VERSÃO SIMPLIFICADA: Stats básicos até RLS ser corrigido
+    // Outros contadores - usar apenas dados que o usuário tem acesso
+    const { count: turmasTotal } = await supabase.from('turmas').select('*', { count: 'exact', head: true });
+    const { count: alunosTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'aluno');
+    const { count: professoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'professor');
+    const { count: monitoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'monitor');
+    const { count: adminsTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'admin');
+    const { count: avaliacoesRealizadas } = await supabase.from('avaliacoes').select('*', { count: 'exact', head: true }).eq('avaliador_id', userId);
+
+    console.log('Stats calculadas:', {
+      turmasTotal,
+      turmasUsuario,
+      avaliacoesRealizadas
+    });
+
     return {
-      turmasTotal: 0, // Desabilitado temporariamente devido a RLS
-      alunosTotal: 0,
-      professoresTotal: 0,
-      monitoresTotal: 0,
-      adminsTotal: 0,
+      turmasTotal: turmasTotal || 0,
+      alunosTotal: alunosTotal || 0,
+      professoresTotal: professoresTotal || 0,
+      monitoresTotal: monitoresTotal || 0,
+      adminsTotal: adminsTotal || 0,
       turmasUsuario: turmasUsuario,
-      avaliacoesRealizadas: 0,
+      avaliacoesRealizadas: avaliacoesRealizadas || 0,
       referenciaLinks: [],
       atividadesRecentes: [],
     };
@@ -88,7 +101,7 @@ export async function getTurmasParaDashboard(userId: string): Promise<Turma[]> {
             return [];
         }
 
-        // VERSÃO SIMPLIFICADA: Apenas turmas onde é professor até RLS ser corrigido
+        // Buscar turmas onde é professor
         const { data: turmasComoProfessor, error: errorProfessor } = await supabase
             .from('turmas')
             .select('*')
@@ -99,17 +112,42 @@ export async function getTurmasParaDashboard(userId: string): Promise<Turma[]> {
         
         if (errorProfessor) {
             console.error('Erro ao buscar turmas como professor:', errorProfessor);
-            // Se der erro RLS, retornar array vazio temporariamente
-            return [];
         }
         
-        // Retornar apenas as turmas como professor (sem buscar membros para evitar recursão)
+        // Buscar turmas onde é membro
+        const { data: turmasComoMembro, error: errorMembro } = await supabase
+            .from('turma_membros')
+            .select('turma_id, turmas!inner(*)')
+            .eq('user_id', userId)
+            .eq('status', 'ativo');
+        
+        console.log('Turmas como membro - data:', turmasComoMembro);
+        console.log('Turmas como membro - count:', turmasComoMembro?.length || 0);
+        
+        if (errorMembro) {
+            console.error('Erro ao buscar turmas como membro:', errorMembro);
+        }
+        
+        // Processar resultados
         const turmasProfessor = turmasComoProfessor || [];
+        const turmasMembro = turmasComoMembro?.map((item: Record<string, unknown>) => {
+            // Verificar se turmas é um objeto válido (não array)
+            if (item.turmas && typeof item.turmas === 'object' && !Array.isArray(item.turmas)) {
+                return item.turmas as Turma;
+            }
+            return null;
+        }).filter((turma): turma is Turma => Boolean(turma)) || [];
         
-        console.log('Total de turmas encontradas (apenas como professor):', turmasProfessor.length);
-        console.log('Detalhes das turmas:', turmasProfessor.map(t => ({ id: t.id, nome: t.nome })));
+        // Combinar e remover duplicatas
+        const todasTurmas = [...turmasProfessor, ...turmasMembro];
+        const turmasUnicas = todasTurmas.filter((turma, index, self) => 
+            index === self.findIndex(t => t.id === turma.id)
+        );
         
-        return turmasProfessor;
+        console.log('Total de turmas únicas encontradas:', turmasUnicas.length);
+        console.log('Detalhes das turmas:', turmasUnicas.map(t => ({ id: t.id, nome: t.nome })));
+        
+        return turmasUnicas;
     } catch (error) {
         console.error('Erro ao buscar turmas do usuário:', error);
         return [];
@@ -135,9 +173,18 @@ export async function getReferenciaLinks(): Promise<ReferenciaLink[]> {
 
 export async function getAtividadesRecentes(): Promise<AtividadeRecente[]> {
     try {
-        // VERSÃO SIMPLIFICADA: Retornar array vazio até RLS ser corrigido
-        console.log('getAtividadesRecentes - Função simplificada devido a problemas RLS');
-        return [];
+        const { data, error } = await supabase
+            .from('atividades_recentes')
+            .select('*, usuario:profiles(id, full_name, avatar_url), turma:turmas(id, nome)')
+            .order('created_at', { ascending: false })
+            .limit(20);
+
+        if (error) {
+            console.error('Erro ao buscar atividades recentes:', error);
+            return [];
+        }
+
+        return data || [];
     } catch (error) {
         console.error('Erro ao buscar atividades recentes:', error);
         return [];
