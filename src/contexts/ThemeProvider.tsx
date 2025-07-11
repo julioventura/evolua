@@ -17,29 +17,30 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-  const [theme, setThemeState] = useState<Theme>('light')
+  // Forçar sempre o tema escuro, mantendo a funcionalidade de toggle
+  const [theme, setThemeState] = useState<Theme>('dark')
 
-  // Carregar tema do localStorage na inicialização
+  // Carregar tema do localStorage na inicialização, mas sempre usar dark
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme') as Theme
-    if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-      setThemeState(savedTheme)
-    }
+    // Independente do tema salvo, sempre usar dark
+    setThemeState('dark')
   }, [])
 
-  // Aplicar tema ao documento
+  // Aplicar tema ao documento - sempre dark
   useEffect(() => {
     const root = window.document.documentElement
     root.classList.remove('light', 'dark')
-    root.classList.add(theme)
+    root.classList.add('dark') // Sempre aplicar dark
   }, [theme])
 
   const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme)
+    // Sempre manter como dark, mas salvar a preferência do usuário
+    setThemeState('dark')
     localStorage.setItem('theme', newTheme)
   }
 
   const toggleTheme = () => {
+    // Manter a funcionalidade de toggle para não quebrar a UI, mas sempre dark
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
   }
