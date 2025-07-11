@@ -197,17 +197,18 @@ const DashboardPage: React.FC = () => {
   ];
 
   return (
-    <div className="p-4 md:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-gray-200">
-      <h1 className="text-3xl font-bold dark:text-white mb-2">Dashboard</h1>
-      <p className="text-gray-600 dark:text-gray-300 mb-8">
-        Bem-vindo{user?.nome ? ' de volta, ' : 'a'}
-        {user?.nome ? (
-          <span className="font-semibold">{user.nome}</span>
-        ) : (
-          ' Usuário'
-        )}
-        .
-      </p>
+    <div className="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 md:py-8">
+        <h1 className="text-3xl font-bold dark:text-white mb-2">Dashboard</h1>
+        <p className="text-gray-600 dark:text-gray-300 mb-8">
+          Bem-vindo{user?.nome ? ' de volta, ' : 'a'}
+          {user?.nome ? (
+            <span className="font-semibold">{user.nome}</span>
+          ) : (
+            ' Usuário'
+          )}
+          .
+        </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         {statCards.map(card => {
@@ -373,6 +374,7 @@ const DashboardPage: React.FC = () => {
       <Modal isOpen={isProfilesDebugOpen} onClose={() => setIsProfilesDebugOpen(false)} title="Debug Profiles" size="xl">
         <ProfilesDebug onClose={() => setIsProfilesDebugOpen(false)} />
       </Modal>
+      </div>
     </div>
   );
 };
