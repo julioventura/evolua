@@ -47,18 +47,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Função para carregar dados do perfil da tabela profiles
   const loadUserProfile = useCallback(async (authUser: User): Promise<AppUser> => {
-    console.log('📊 loadUserProfile iniciado para:', authUser.email);
-    console.log('🔍 User ID:', authUser.id);
-    
-    // Criar o usuário com dados do auth (não consultar tabela profiles por enquanto)
-    const userWithProfile = {
+    // Criar usuário base primeiro
+    const baseUser = {
       ...authUser,
       nome: authUser.user_metadata?.full_name || authUser.email,
       categoria: authUser.app_metadata?.userrole || 'aluno',
     } as AppUser;
-    
-    console.log('🎯 UserWithProfile final:', userWithProfile);
-    return userWithProfile;
+
+    try {
+      // Buscar perfil com timeout de 3 segundos
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Timeout na consulta')), 3000);
+      });
+
+      const profilePromise = supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+
+      const result = await Promise.race([profilePromise, timeoutPromise]);
+      
+      if (result.error) {
+        return baseUser;
+      }
+
+      if (result.data) {
+        // Usar dados do perfil da DB
+        const userWithProfile = {
+          ...authUser,
+          nome: result.data.nome || baseUser.nome,
+          categoria: result.data.categoria || result.data.papel || baseUser.categoria,
+          whatsapp: result.data.whatsapp,
+          cidade: result.data.cidade,
+          estado: result.data.estado,
+          instituicao: result.data.instituicao,
+          registro_profissional: result.data.registro_profissional,
+        } as AppUser;
+
+        return userWithProfile;
+      }
+
+      return baseUser;
+      
+    } catch {
+      return baseUser;
+    }
   }, []);
 
   useEffect(() => {
@@ -81,30 +115,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Ouve mudanças no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, newSession) => {
-      console.log('🎯 AuthStateChange:', _event, newSession?.user?.email);
-      
       if (_event === 'SIGNED_IN' && newSession?.user) {
-        console.log('📝 Logando atividade...');
         logAtividade(
           newSession.user.id,
           'USER_LOGIN',
           { descricao: 'Usuário realizou login.' }
         );
         
-        console.log('👤 Carregando perfil do usuário...');
         const userWithProfile = await loadUserProfile(newSession.user);
-        console.log('✅ Perfil carregado:', userWithProfile?.nome);
-        console.log('🔄 Chamando setUser com:', userWithProfile?.email);
         setUser(userWithProfile);
-        console.log('✅ setUser chamado!');
       } else {
-        console.log('❌ Removendo usuário do estado');
         setUser(null);
       }
       
       setSession(newSession);
       setLoading(false);
-      console.log('🔄 Estado atualizado - loading:', false);
     });
 
     // Limpa a inscrição ao desmontar o componente
@@ -118,13 +143,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const signIn = async (credentials: {email: string, password: string}) => {
-    console.log('🔐 signIn iniciado:', credentials.email);
     const { error } = await supabase.auth.signInWithPassword(credentials);
     if (error) {
-      console.error('❌ Erro no signIn:', error);
       throw error;
     }
-    console.log('✅ signIn concluído, aguardando listener...');
     // O listener onAuthStateChange vai atualizar o estado automaticamente
   };
 
@@ -151,7 +173,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 
   // Campo global: isAdmin
-  const isAdmin = user?.app_metadata?.userrole === 'admin';
+  const isAdmin = user?.categoria === 'admin';
 
   const value = {
     user,

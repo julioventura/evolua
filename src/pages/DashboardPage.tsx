@@ -20,10 +20,12 @@ import {
   PlusIcon,
   LinkIcon,
   DocumentTextIcon,
-  FolderIcon
+  FolderIcon,
+  WrenchScrewdriverIcon
 } from '@heroicons/react/24/outline';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Modal } from '../components/ui/Modal';
+import { ProfilesDebug } from '../components/ui/ProfilesDebug';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
@@ -45,6 +47,7 @@ const DashboardPage: React.FC = () => {
 
   const [isNovaAvaliacaoModalOpen, setIsNovaAvaliacaoModalOpen] = useState(false);
   const [isUsuariosModalOpen, setIsUsuariosModalOpen] = useState(false);
+  const [isProfilesDebugOpen, setIsProfilesDebugOpen] = useState(false);
   const [usuariosPorCategoria, setUsuariosPorCategoria] = useState<Record<string, Usuario[]> | null>(null);
   const [usuariosLoading, setUsuariosLoading] = useState(false);
   const [usuariosError, setUsuariosError] = useState<string | null>(null);
@@ -270,6 +273,15 @@ const DashboardPage: React.FC = () => {
                 Ver usuários
               </button>
             )}
+            {user?.categoria === 'admin' && (
+              <button
+                onClick={() => setIsProfilesDebugOpen(true)}
+                className="w-full flex items-center justify-center p-3 bg-red-500 text-white rounded-md hover:bg-red-600 transition-colors duration-300 font-semibold"
+              >
+                <WrenchScrewdriverIcon className="h-5 w-5 mr-2" />
+                Debug Profiles
+              </button>
+            )}
           </div>
 
           <div className="mt-8">
@@ -355,6 +367,11 @@ const DashboardPage: React.FC = () => {
             ))}
           </div>
         )}
+      </Modal>
+
+      {/* Modal de debug da tabela profiles */}
+      <Modal isOpen={isProfilesDebugOpen} onClose={() => setIsProfilesDebugOpen(false)} title="Debug Profiles" size="xl">
+        <ProfilesDebug onClose={() => setIsProfilesDebugOpen(false)} />
       </Modal>
     </div>
   );
