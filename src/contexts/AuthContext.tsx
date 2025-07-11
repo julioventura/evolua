@@ -50,42 +50,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     console.log('📊 loadUserProfile iniciado para:', authUser.email);
     console.log('🔍 User ID:', authUser.id);
     
-    // Primeiro criar o usuário base com dados do auth
+    // Criar o usuário com dados do auth (não consultar tabela profiles por enquanto)
     const userWithProfile = {
       ...authUser,
       nome: authUser.user_metadata?.full_name || authUser.email,
       categoria: authUser.app_metadata?.userrole || 'aluno',
     } as AppUser;
-    
-    // Tentar carregar dados do perfil, mas com timeout e fallback
-    try {
-      console.log('🔍 Tentando carregar perfil do banco...');
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', authUser.id)
-        .single();
-
-      if (error) {
-        console.warn('⚠️ Erro ao carregar perfil (usando fallback):', error.message);
-        return userWithProfile;
-      }
-
-      if (profile) {
-        console.log('✅ Perfil carregado da DB:', profile);
-        // Atualizar com dados do perfil
-        userWithProfile.nome = profile.nome || userWithProfile.nome;
-        userWithProfile.categoria = profile.categoria || userWithProfile.categoria;
-        userWithProfile.whatsapp = profile.whatsapp;
-        userWithProfile.cidade = profile.cidade;
-        userWithProfile.estado = profile.estado;
-        userWithProfile.instituicao = profile.instituicao;
-        userWithProfile.registro_profissional = profile.registro_profissional;
-      }
-    } catch (error) {
-      console.warn('⚠️ Erro ao carregar perfil (usando fallback):', error);
-      // Continuar com dados básicos
-    }
     
     console.log('🎯 UserWithProfile final:', userWithProfile);
     return userWithProfile;
