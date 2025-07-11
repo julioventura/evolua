@@ -239,6 +239,14 @@ export async function createTurma(turmaData: CreateTurmaData): Promise<Turma> {
         .single();
     if (error) throw new Error('Erro ao criar turma.');
 
+    // Adicionar automaticamente o professor como membro da turma
+    try {
+        await addMembroTurma(data.id, user.id, 'professor');
+    } catch (err) {
+        console.warn('Erro ao adicionar professor como membro da turma:', err);
+        // Não lançar erro aqui para não quebrar a criação da turma
+    }
+
     // Log da atividade
     await logAtividade(
         user.id,
