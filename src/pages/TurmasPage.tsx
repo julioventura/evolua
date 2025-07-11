@@ -141,27 +141,29 @@ export function TurmasPage() {
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-xl font-semibold text-gray-900">{turma.nome}</h3>
-          <p className="text-sm text-gray-600">
+
+        <div style={{ color: turma.cor_tema }}>
+
+          <h3 className="text-xl font-semibold">{turma.nome}</h3>
+
+          <p className="text-sm">
             {isMinhaTurma ? 'Minha turma' : `Prof. ${turma.professor?.nome}`}
           </p>
+
         </div>
+
         <div className="flex items-center space-x-2">
-          <span
-            className="w-4 h-4 rounded-full border-2 border-white shadow-sm"
-            style={{ backgroundColor: turma.cor_tema }}
-            title="Cor da turma"
-          />
+
           <span className={`
-            px-2 py-1 rounded-full text-xs font-medium
+            px-2 py-1 rounded-full text-xs
             ${turma.ativa
-              ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-800'
+              ? 'border-3 border-green-800 text-green-700'
+              : 'border-2 border-gray-600 text-gray-500 font-light'
             }
           `}>
-            {turma.ativa ? 'Ativa' : 'Inativa'}
+            {turma.ativa ? 'ATIVA' : 'INATIVA'}
           </span>
+
         </div>
       </div>
 
