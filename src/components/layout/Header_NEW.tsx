@@ -67,7 +67,7 @@ export const Header: React.FC = () => {
             {user && (
               <div className="hidden md:block">
                 <ProfileDropdown 
-                  userName={user.nome || user.email} 
+                  userName={user.nome || user.email || ''} 
                   userCategory={user.categoria || 'aluno'} 
                 />
               </div>
@@ -95,7 +95,7 @@ export const Header: React.FC = () => {
                   {/* User Info Mobile */}
                   <div className="flex items-center px-3 py-2 mb-3 bg-gray-50 dark:bg-gray-700 rounded-md">
                     <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary-600 dark:bg-primary-500 text-white text-sm font-medium mr-3">
-                      {(user.nome || user.email).charAt(0).toUpperCase()}
+                      {(user.nome || user.email || 'U').charAt(0).toUpperCase()}
                     </div>
                     <div>
                       <p className="text-sm font-medium text-gray-900 dark:text-white">

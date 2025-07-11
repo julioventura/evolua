@@ -4,7 +4,7 @@ const LazyMembrosPage = React.lazy(() => import('./pages/MembrosPage'));
 import MembroPage from './pages/MembroPage';
 // ...existing code...
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider } from './contexts/AuthProvider'
+import { AuthProvider } from './contexts/AuthContext'
 import { Header } from './components/layout/Header'
 import { Footer } from './components/layout/Footer'
 import { LoadingSpinner } from './components/ui/LoadingSpinner'
@@ -17,7 +17,7 @@ import { TurmaFormPage } from './pages/TurmaFormPage'
 import { TurmaDetailsPage } from './pages/TurmaDetailsPage'
 import { PerfilPage } from './pages/PerfilPage'
 import { ConfiguracoesPage } from './pages/ConfiguracoesPage'
-import { useAuth } from './contexts/AuthContext'
+import { useAuth } from './hooks/useAuth'
 import ChatbotModal from "./components/ChatbotModal";
 
 // Componente para proteger rotas privadas

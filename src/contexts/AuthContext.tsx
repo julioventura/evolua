@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { createContext, useState, useEffect, useCallback } from 'react';
+import type { ReactNode } from 'react';
+import type { Session, User } from '@supabase/supabase-js';
 import { logAtividade } from '../lib/turmasService2';
 import { supabase } from '../lib/supabaseClient';
 
@@ -24,35 +25,45 @@ export interface AppUser extends User {
   registro_profissional?: string;
 }
 
-interface AuthContextType {
+export interface AuthContextType {
   user: AppUser | null;
   session: Session | null;
   loading: boolean;
   signOut: () => void;
+  signIn: (credentials: {email: string, password: string}) => Promise<void>;
+  signUp: (data: {email: string, password: string, nome: string, categoria?: string}) => Promise<void>;
   isAdmin: boolean;
   refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+export { AuthContext };
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<AppUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true); // Começa como true
 
-  // Função para carregar dados do perfil e combinar com dados do auth
+  // Função para carregar dados do perfil da tabela profiles
   const loadUserProfile = useCallback(async (authUser: User): Promise<AppUser> => {
     try {
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
         .eq('id', authUser.id)
         .single();
 
+      if (error) {
+        console.error('Erro ao carregar perfil:', error);
+        return authUser as AppUser;
+      }
+
+      // Combinar dados do auth com dados do perfil
       return {
         ...authUser,
-        nome: profile?.nome,
-        categoria: profile?.categoria,
+        nome: profile?.nome || authUser.user_metadata?.full_name || authUser.email,
+        categoria: profile?.categoria || authUser.app_metadata?.userrole || 'aluno',
         whatsapp: profile?.whatsapp,
         cidade: profile?.cidade,
         estado: profile?.estado,
@@ -60,7 +71,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         registro_profissional: profile?.registro_profissional,
       } as AppUser;
     } catch (error) {
-      console.warn('Erro ao carregar perfil:', error);
+      console.error('Erro ao carregar perfil:', error);
       return authUser as AppUser;
     }
   }, []);
@@ -112,6 +123,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     await supabase.auth.signOut();
   };
 
+  const signIn = async (credentials: {email: string, password: string}) => {
+    const { error } = await supabase.auth.signInWithPassword(credentials);
+    if (error) throw error;
+  };
+
+  const signUp = async (data: {email: string, password: string, nome: string, categoria?: string}) => {
+    const { error } = await supabase.auth.signUp({
+      email: data.email,
+      password: data.password,
+      options: {
+        data: {
+          full_name: data.nome,
+          categoria: data.categoria || 'aluno'
+        }
+      }
+    });
+    if (error) throw error;
+  };
+
   const refreshProfile = useCallback(async () => {
     if (user) {
       const userWithProfile = await loadUserProfile(user);
@@ -128,6 +158,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     session,
     loading,
     signOut,
+    signIn,
+    signUp,
     isAdmin,
     refreshProfile,
   };
