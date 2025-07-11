@@ -21,29 +21,41 @@ import type {
 // ============================================================================
 
 export async function getDashboardStats(userId: string): Promise<DashboardStats> {
-  // Contar turmas únicas do usuário (evitando duplicatas)
-  const turmasUnicas = await getTurmasParaDashboard(userId);
-  const turmasUsuario = turmasUnicas.length;
+  console.log('getDashboardStats - userId:', userId);
   
-  // Outros contadores
-  const { count: turmasTotal } = await supabase.from('turmas').select('*', { count: 'exact', head: true });
-  const { count: alunosTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'aluno');
-  const { count: professoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'professor');
-  const { count: monitoresTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'monitor');
-  const { count: adminsTotal } = await supabase.from('profiles').select('*', { count: 'exact', head: true }).eq('categoria', 'admin');
-  const { count: avaliacoesRealizadas } = await supabase.from('avaliacoes').select('*', { count: 'exact', head: true }).eq('avaliador_id', userId);
-
-  return {
-    turmasTotal: turmasTotal || 0,
-    alunosTotal: alunosTotal || 0,
-    professoresTotal: professoresTotal || 0,
-    monitoresTotal: monitoresTotal || 0,
-    adminsTotal: adminsTotal || 0,
-    turmasUsuario: turmasUsuario,
-    avaliacoesRealizadas: avaliacoesRealizadas || 0,
-    referenciaLinks: [],
-    atividadesRecentes: [],
-  };
+  try {
+    // Contar turmas únicas do usuário (versão simplificada)
+    const turmasUnicas = await getTurmasParaDashboard(userId);
+    const turmasUsuario = turmasUnicas.length;
+    
+    console.log('Turmas do usuário encontradas:', turmasUsuario);
+    
+    // VERSÃO SIMPLIFICADA: Stats básicos até RLS ser corrigido
+    return {
+      turmasTotal: 0, // Desabilitado temporariamente devido a RLS
+      alunosTotal: 0,
+      professoresTotal: 0,
+      monitoresTotal: 0,
+      adminsTotal: 0,
+      turmasUsuario: turmasUsuario,
+      avaliacoesRealizadas: 0,
+      referenciaLinks: [],
+      atividadesRecentes: [],
+    };
+  } catch (error) {
+    console.error('Erro ao buscar stats do dashboard:', error);
+    return {
+      turmasTotal: 0,
+      alunosTotal: 0,
+      professoresTotal: 0,
+      monitoresTotal: 0,
+      adminsTotal: 0,
+      turmasUsuario: 0,
+      avaliacoesRealizadas: 0,
+      referenciaLinks: [],
+      atividadesRecentes: [],
+    };
+  }
 }
 
 export async function getAvaliacoes(): Promise<Avaliacao[]> {
@@ -65,36 +77,39 @@ export async function getAvaliacoes(): Promise<Avaliacao[]> {
 
 export async function getTurmasParaDashboard(userId: string): Promise<Turma[]> {
     try {
-        // Buscar turmas onde o usuário é professor
+        console.log('getTurmasParaDashboard - userId:', userId);
+        
+        // Verificar se o usuário está autenticado
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('Usuario autenticado:', user?.id);
+        
+        if (!user) {
+            console.warn('Usuário não autenticado ao buscar turmas');
+            return [];
+        }
+
+        // VERSÃO SIMPLIFICADA: Apenas turmas onde é professor até RLS ser corrigido
         const { data: turmasComoProfessor, error: errorProfessor } = await supabase
             .from('turmas')
-            .select('*, professor:profiles!professor_id(*)')
+            .select('*')
             .eq('professor_id', userId);
+        
+        console.log('Turmas como professor - data:', turmasComoProfessor);
+        console.log('Turmas como professor - count:', turmasComoProfessor?.length || 0);
         
         if (errorProfessor) {
             console.error('Erro ao buscar turmas como professor:', errorProfessor);
+            // Se der erro RLS, retornar array vazio temporariamente
+            return [];
         }
         
-        // Buscar turmas onde o usuário é membro
-        const { data: turmasComoMembro, error: errorMembro } = await supabase
-            .from('turma_membros')
-            .select('turmas(*, professor:profiles!professor_id(*))')
-            .eq('user_id', userId);
+        // Retornar apenas as turmas como professor (sem buscar membros para evitar recursão)
+        const turmasProfessor = turmasComoProfessor || [];
         
-        if (errorMembro) {
-            console.error('Erro ao buscar turmas como membro:', errorMembro);
-        }
+        console.log('Total de turmas encontradas (apenas como professor):', turmasProfessor.length);
+        console.log('Detalhes das turmas:', turmasProfessor.map(t => ({ id: t.id, nome: t.nome })));
         
-        // Combinar resultados
-        const turmasMembroExtracted = turmasComoMembro?.map((item: Record<string, unknown>) => (item as Record<string, unknown>).turmas).filter(Boolean) as Turma[] || [];
-        const todasTurmas = [...(turmasComoProfessor || []), ...turmasMembroExtracted];
-        
-        // Remover duplicatas
-        const turmasUnicas = todasTurmas.filter((turma, index, self) => 
-            index === self.findIndex(t => t.id === turma.id)
-        );
-        
-        return turmasUnicas;
+        return turmasProfessor;
     } catch (error) {
         console.error('Erro ao buscar turmas do usuário:', error);
         return [];
@@ -119,18 +134,14 @@ export async function getReferenciaLinks(): Promise<ReferenciaLink[]> {
 }
 
 export async function getAtividadesRecentes(): Promise<AtividadeRecente[]> {
-    const { data, error } = await supabase
-        .from('atividades_recentes')
-        .select('*, usuario:profiles(id, full_name, avatar_url), turma:turmas(id, nome)')
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-    if (error) {
+    try {
+        // VERSÃO SIMPLIFICADA: Retornar array vazio até RLS ser corrigido
+        console.log('getAtividadesRecentes - Função simplificada devido a problemas RLS');
+        return [];
+    } catch (error) {
         console.error('Erro ao buscar atividades recentes:', error);
         return [];
     }
-
-    return data || [];
 }
 
 // Helper para registrar atividades
