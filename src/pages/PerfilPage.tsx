@@ -66,6 +66,8 @@ export const PerfilPage: React.FC = () => {
     if (ok) {
       setSuccess('Perfil atualizado com sucesso!')
       setIsEditing(false)
+      // Recarregar a página para atualizar os dados
+      window.location.reload();
     } else {
       setError('Erro ao salvar perfil. Tente novamente.')
     }
@@ -109,7 +111,7 @@ export const PerfilPage: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 <div className="w-16 h-16 bg-primary-600 dark:bg-primary-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
-                  {user.nome?.charAt(0).toUpperCase() || 'U'}
+                  {formData.nome?.charAt(0).toUpperCase() || 'U'}
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -149,7 +151,7 @@ export const PerfilPage: React.FC = () => {
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-white"
                   />
                 ) : (
-                  <p className="text-gray-900 dark:text-white">{user.nome}</p>
+                  <p className="text-gray-900 dark:text-white">{formData.nome}</p>
                 )}
               </div>
 

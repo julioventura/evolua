@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { ProfileDropdown } from '../ui/ProfileDropdown'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../../hooks/useAuth'
+import { useAuth } from '../../contexts/AuthContext'
 
 export const Header: React.FC = () => {
   const { user } = useAuth()

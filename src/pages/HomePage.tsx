@@ -70,7 +70,7 @@ export const HomePage: React.FC = () => {
           {user ? (
             <div className="space-y-4">
               <p className="text-lg text-gray-700 dark:text-gray-300">
-                Bem-vindo de volta, <span className="font-semibold">{user.nome}</span>!
+                Bem-vindo de volta, <span className="font-semibold">{user.nome || user.email}</span>!
               </p>
             </div>
           ) : (

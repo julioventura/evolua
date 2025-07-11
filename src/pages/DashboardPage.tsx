@@ -197,9 +197,9 @@ const DashboardPage: React.FC = () => {
     <div className="p-4 md:p-8 bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-800 dark:text-gray-200">
       <h1 className="text-3xl font-bold dark:text-white mb-2">Dashboard</h1>
       <p className="text-gray-600 dark:text-gray-300 mb-8">
-        Bem-vindo{user?.full_name || user?.nome ? ' de volta, ' : 'a'}
-        {user?.full_name || user?.nome ? (
-          <span className="font-semibold">{user.full_name || user.nome}</span>
+        Bem-vindo{user?.nome ? ' de volta, ' : 'a'}
+        {user?.nome ? (
+          <span className="font-semibold">{user.nome}</span>
         ) : (
           ' Usuário'
         )}
