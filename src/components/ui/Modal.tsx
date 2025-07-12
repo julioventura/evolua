@@ -63,6 +63,11 @@ export const Modal: React.FC<ModalProps> = ({
       return `${baseClasses} w-full h-full bg-white dark:bg-gray-900`;
     }
 
+    // Para modal xl (debug), garantir altura máxima e rolagem
+    if (size === 'xl') {
+      return `${baseClasses} ${sizeClasses[size]} max-h-[90vh] rounded-lg bg-white dark:bg-gray-800`;
+    }
+
     return `${baseClasses} ${sizeClasses[size]} rounded-lg bg-white dark:bg-gray-800`;
   };
 
@@ -101,7 +106,7 @@ export const Modal: React.FC<ModalProps> = ({
               </button>
             </div>
         </div>
-        <div className="p-6 overflow-y-auto flex-grow">
+        <div className="p-6 overflow-y-auto flex-grow min-h-0">
             {children}
         </div>
       </div>

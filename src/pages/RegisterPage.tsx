@@ -5,6 +5,9 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 import { LoadingSpinner } from '../components/ui/LoadingSpinner'
 import { useTurmas } from '../hooks/useTurmas'
+import { createProfileManuallyRobust } from '../lib/profileServiceRobust'
+import { createProfileDirectly } from '../lib/profileServiceDirect'
+import { supabase } from '../lib/supabaseClient'
 import type { RegisterData } from '../types'
 
 export const RegisterPage: React.FC = () => {
@@ -13,6 +16,7 @@ export const RegisterPage: React.FC = () => {
     password: '',
     nome: '',
     categoria: 'aluno',
+    papel: 'aluno',
     whatsapp: '',
     cidade: '',
     estado: ''
@@ -45,8 +49,6 @@ export const RegisterPage: React.FC = () => {
       </div>
     )
   }
-  
-  const { signUp } = authContext
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,7 +56,81 @@ export const RegisterPage: React.FC = () => {
     setError('')
 
     try {
-      await signUp(formData)
+      console.log('Form data being submitted:', formData); // Debug log
+      
+      // DEBUG: Adicionar logs extensivos para entender o que está acontecendo
+      console.log('=== DEBUG REGISTRO ===');
+      console.log('1. Form data original:', formData);
+      console.log('2. Categoria selecionada:', formData.categoria);
+      console.log('3. Papel sincronizado:', formData.papel);
+      
+      // Criar uma cópia local para garantir que os dados não sejam modificados
+      const localFormData = {
+        ...formData,
+        categoria: formData.categoria || 'aluno',
+        papel: formData.categoria || 'aluno'
+      };
+      
+      console.log('4. Dados locais preparados:', localFormData);
+      
+      // Verificar se há alguma interferência externa
+      setTimeout(() => {
+        console.log('5. Verificação após timeout:', {
+          original: formData,
+          local: localFormData
+        });
+      }, 100);
+
+      // 1. Criar usuário no Auth
+      const { data: authData } = await supabase.auth.signUp({
+        email: localFormData.email,
+        password: localFormData.password,
+        options: {
+          data: {
+            full_name: localFormData.nome,
+            categoria: localFormData.categoria,
+            papel: localFormData.categoria
+          }
+        }
+      })
+
+      console.log('6. Auth data retornado:', authData);
+
+      if (authData.user) {
+        // 2. Criar registro completo na tabela profiles
+        const profileData = {
+          id: authData.user.id,
+          email: localFormData.email,
+          nome: localFormData.nome,
+          categoria: localFormData.categoria,
+          papel: localFormData.categoria,
+          whatsapp: localFormData.whatsapp,
+          cidade: localFormData.cidade,
+          estado: localFormData.estado
+        };
+        
+        console.log('7. Profile data a ser criado:', profileData);
+        
+        // Verificar se os dados ainda estão corretos antes de enviar
+        console.log('8. Verificação final antes de createProfileManually:', {
+          categoriaEsperada: localFormData.categoria,
+          categoriaNoProfile: profileData.categoria,
+          papelEsperado: localFormData.categoria,
+          papelNoProfile: profileData.papel
+        });
+        
+        // Tentar com ambos os métodos para garantir que funcione
+        let result;
+        try {
+          result = await createProfileManuallyRobust(profileData);
+          console.log('9. Resultado de createProfileManuallyRobust:', result);
+        } catch (error) {
+          console.error('Erro com método robusto, tentando método direto:', error);
+          result = await createProfileDirectly(profileData);
+          console.log('9. Resultado de createProfileDirectly:', result);
+        }
+      }
+
       // Se o usuário informou um código de convite, tenta ingressar na turma
       if (codigoConvite.trim()) {
         try {
@@ -87,10 +163,19 @@ export const RegisterPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }))
+    setFormData(prev => {
+      if (name === 'categoria') {
+        return {
+          ...prev,
+          categoria: value as typeof prev.categoria,
+          papel: value as typeof prev.papel
+        }
+      }
+      return {
+        ...prev,
+        [name]: value
+      }
+    })
   }
 
   if (success) {

@@ -17,6 +17,17 @@ export const MembrosPage: React.FC = () => {
   const [membros, setMembros] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [filtroCategoria, setFiltroCategoria] = useState<string>('todos');
+
+  // Definir as categorias disponíveis
+  const categorias = [
+    { value: 'todos', label: 'Todos', count: 0 },
+    { value: 'admin', label: 'Admin', count: 0 },
+    { value: 'professor', label: 'Professor', count: 0 },
+    { value: 'monitor', label: 'Monitor', count: 0 },
+    { value: 'aluno', label: 'Aluno', count: 0 },
+    { value: 'outro', label: 'Outro', count: 0 }
+  ];
 
   const fetchMembros = async () => {
     setLoading(true);
@@ -35,6 +46,30 @@ export const MembrosPage: React.FC = () => {
     }
   };
 
+  // Filtrar membros por categoria
+  const membrosFiltrados = membros.filter(membro => {
+    if (filtroCategoria === 'todos') return true;
+    if (filtroCategoria === 'outro') {
+      return !membro.categoria || !['admin', 'professor', 'monitor', 'aluno'].includes(membro.categoria);
+    }
+    return membro.categoria === filtroCategoria;
+  });
+
+  // Calcular contagem por categoria
+  const categoriasComContagem = categorias.map(categoria => {
+    let count = 0;
+    if (categoria.value === 'todos') {
+      count = membros.length;
+    } else if (categoria.value === 'outro') {
+      count = membros.filter(membro => 
+        !membro.categoria || !['admin', 'professor', 'monitor', 'aluno'].includes(membro.categoria)
+      ).length;
+    } else {
+      count = membros.filter(membro => membro.categoria === categoria.value).length;
+    }
+    return { ...categoria, count };
+  });
+
   useEffect(() => {
     fetchMembros();
   }, []);
@@ -49,6 +84,36 @@ export const MembrosPage: React.FC = () => {
           <p className="text-gray-600 dark:text-gray-300">
             Visualize todos os membros da plataforma organizados por categoria
           </p>
+        </div>
+
+        {/* Filtros por categoria */}
+        <div className="mb-6">
+          <div className="flex flex-wrap gap-2">
+            {categoriasComContagem.map((categoria) => (
+              <button
+                key={categoria.value}
+                onClick={() => setFiltroCategoria(categoria.value)}
+                className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition-colors duration-200 ${
+                  filtroCategoria === categoria.value
+                    ? categoria.value === 'admin'
+                      ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200 border-2 border-red-300 dark:border-red-600'
+                      : categoria.value === 'professor'
+                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border-2 border-blue-300 dark:border-blue-600'
+                      : categoria.value === 'monitor'
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 border-2 border-green-300 dark:border-green-600'
+                      : categoria.value === 'aluno'
+                      ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 border-2 border-purple-300 dark:border-purple-600'
+                      : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200 border-2 border-gray-300 dark:border-gray-600'
+                    : 'bg-gray-50 text-gray-600 dark:bg-gray-800 dark:text-gray-300 border-2 border-transparent hover:bg-gray-100 dark:hover:bg-gray-700'
+                }`}
+              >
+                {categoria.label}
+                <span className="ml-2 px-2 py-1 text-xs bg-white dark:bg-gray-900 rounded-full">
+                  {categoria.count}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Error State */}
@@ -76,14 +141,17 @@ export const MembrosPage: React.FC = () => {
                   Lista de Membros
                 </h2>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
-                  Total: {membros.length} {membros.length === 1 ? 'membro' : 'membros'}
+                  {filtroCategoria === 'todos' 
+                    ? `Total: ${membrosFiltrados.length} ${membrosFiltrados.length === 1 ? 'membro' : 'membros'}`
+                    : `${membrosFiltrados.length} ${membrosFiltrados.length === 1 ? 'membro' : 'membros'} - ${categoriasComContagem.find(c => c.value === filtroCategoria)?.label || 'Filtro'}`
+                  }
                 </span>
               </div>
             </div>
 
             {/* Lista de membros */}
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {membros.length === 0 ? (
+              {membrosFiltrados.length === 0 ? (
                 <div className="px-6 py-12 text-center">
                   <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                     <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,14 +159,20 @@ export const MembrosPage: React.FC = () => {
                     </svg>
                   </div>
                   <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                    Nenhum membro encontrado
+                    {filtroCategoria === 'todos' 
+                      ? 'Nenhum membro encontrado' 
+                      : `Nenhum membro encontrado na categoria "${categoriasComContagem.find(c => c.value === filtroCategoria)?.label || 'Filtro'}"`
+                    }
                   </h3>
                   <p className="text-gray-500 dark:text-gray-400">
-                    Não há membros cadastrados na plataforma no momento.
+                    {filtroCategoria === 'todos' 
+                      ? 'Não há membros cadastrados na plataforma no momento.'
+                      : 'Tente selecionar uma categoria diferente.'
+                    }
                   </p>
                 </div>
               ) : (
-                membros.map((membro) => (
+                membrosFiltrados.map((membro) => (
                   <div
                     key={membro.id}
                     className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-200"
@@ -145,6 +219,8 @@ export const MembrosPage: React.FC = () => {
                               ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                               : membro.categoria === 'monitor'
                               ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : membro.categoria === 'aluno'
+                              ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
                               : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                           }`}>
                             {membro.categoria?.charAt(0).toUpperCase() + (membro.categoria?.slice(1) || '') || 'Não definido'}

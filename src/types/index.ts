@@ -36,6 +36,7 @@ export interface RegisterData {
   password: string;
   nome: string;
   categoria?: User['categoria'];
+  papel?: User['categoria'];
   instituicao?: string;
   registro_profissional?: string;
   whatsapp?: string;

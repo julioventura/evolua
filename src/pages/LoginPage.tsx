@@ -15,7 +15,6 @@ export const LoginPage: React.FC = () => {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [checking, setChecking] = useState(true)
   
   const { signIn, user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
@@ -28,10 +27,9 @@ export const LoginPage: React.FC = () => {
       console.log('✅ Usuário logado, redirecionando...');
       setLoading(false)
       navigate('/dashboard', { replace: true })
-    } else if (!user && !authLoading) {
-      // Se não está logado, mostrar a página de login
+    } else if (!authLoading) {
+      // Se não está logado e não está mais carregando, mostrar a página de login
       console.log('❌ Usuário não logado, mostrando login');
-      setChecking(false)
     }
   }, [user, authLoading, navigate, loading])
 
@@ -62,7 +60,7 @@ export const LoginPage: React.FC = () => {
   }
 
   // Mostrar spinner enquanto verifica se o usuário está logado
-  if (checking) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <LoadingSpinner size="lg" message="Verificando autenticação..." />

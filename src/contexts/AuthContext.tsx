@@ -31,7 +31,7 @@ export interface AuthContextType {
   loading: boolean;
   signOut: () => void;
   signIn: (credentials: {email: string, password: string}) => Promise<void>;
-  signUp: (data: {email: string, password: string, nome: string, categoria?: string}) => Promise<void>;
+  signUp: (data: {email: string, password: string, nome: string, categoria?: string, papel?: string}) => Promise<void>;
   isAdmin: boolean;
   refreshProfile: () => Promise<void>;
 }
@@ -51,46 +51,79 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const baseUser = {
       ...authUser,
       nome: authUser.user_metadata?.full_name || authUser.email,
-      categoria: authUser.app_metadata?.userrole || 'aluno',
+      categoria: 'aluno', // Fallback padrão apenas se não houver dados na DB
     } as AppUser;
 
     try {
-      // Buscar perfil com timeout de 3 segundos
-      const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => reject(new Error('Timeout na consulta')), 3000);
-      });
-
+      console.log('Carregando perfil para usuário:', authUser.id);
+      
+      // Tentar carregar perfil com timeout para evitar travamento
       const profilePromise = supabase
         .from('profiles')
         .select('*')
         .eq('id', authUser.id)
         .single();
 
-      const result = await Promise.race([profilePromise, timeoutPromise]);
-      
-      if (result.error) {
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Profile loading timeout')), 3000);
+      });
+
+      try {
+        const result = await Promise.race([profilePromise, timeoutPromise]);
+        const profileResult = result as { data: unknown; error: unknown };
+
+        if (profileResult.error) {
+          const error = profileResult.error as { code?: string };
+          if (error.code === 'PGRST116') {
+            console.log('Perfil não encontrado na tabela profiles, usando dados base');
+          } else {
+            console.warn('Erro ao carregar perfil:', error);
+          }
+          return baseUser;
+        }
+
+        if (profileResult.data) {
+          const profile = profileResult.data as {
+            nome?: string;
+            categoria?: string;
+            papel?: string;
+            whatsapp?: string;
+            cidade?: string;
+            estado?: string;
+            instituicao?: string;
+            registro_profissional?: string;
+          };
+          
+          console.log('Perfil encontrado:', profile);
+          
+          // Usar dados do perfil da DB - PRIORIZAR categoria da DB
+          const userWithProfile = {
+            ...authUser,
+            nome: profile.nome || baseUser.nome,
+            categoria: (profile.categoria && profile.categoria !== '') ? profile.categoria : 
+                      (profile.papel && profile.papel !== '') ? profile.papel : 
+                      baseUser.categoria,
+            whatsapp: profile.whatsapp,
+            cidade: profile.cidade,
+            estado: profile.estado,
+            instituicao: profile.instituicao,
+            registro_profissional: profile.registro_profissional,
+          } as AppUser;
+
+          console.log('Usuário final com perfil:', userWithProfile);
+          return userWithProfile;
+        }
+
+        return baseUser;
+
+      } catch (dbError) {
+        console.warn('Timeout ou erro ao carregar perfil:', dbError);
         return baseUser;
       }
-
-      if (result.data) {
-        // Usar dados do perfil da DB
-        const userWithProfile = {
-          ...authUser,
-          nome: result.data.nome || baseUser.nome,
-          categoria: result.data.categoria || result.data.papel || baseUser.categoria,
-          whatsapp: result.data.whatsapp,
-          cidade: result.data.cidade,
-          estado: result.data.estado,
-          instituicao: result.data.instituicao,
-          registro_profissional: result.data.registro_profissional,
-        } as AppUser;
-
-        return userWithProfile;
-      }
-
-      return baseUser;
       
-    } catch {
+    } catch (error) {
+      console.warn('Erro ao carregar perfil do usuário, usando dados base:', error);
+      // Retornar usuário base em caso de erro, sem travar a aplicação
       return baseUser;
     }
   }, []);
@@ -150,14 +183,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // O listener onAuthStateChange vai atualizar o estado automaticamente
   };
 
-  const signUp = async (data: {email: string, password: string, nome: string, categoria?: string}) => {
+  const signUp = async (data: {email: string, password: string, nome: string, categoria?: string, papel?: string}) => {
     const { error } = await supabase.auth.signUp({
       email: data.email,
       password: data.password,
       options: {
         data: {
           full_name: data.nome,
-          categoria: data.categoria || 'aluno'
+          categoria: data.categoria || 'aluno',
+          papel: data.papel || data.categoria || 'aluno'
         }
       }
     });

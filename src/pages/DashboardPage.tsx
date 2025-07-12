@@ -26,6 +26,7 @@ import {
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
 import { Modal } from '../components/ui/Modal';
 import { ProfilesDebug } from '../components/ui/ProfilesDebug';
+import { DebugTools } from '../components/ui/DebugTools';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
@@ -283,6 +284,8 @@ const DashboardPage: React.FC = () => {
                 Debug Profiles
               </button>
             )}
+            {/* Componente de Debug sempre visível para resolver problema de categoria */}
+            <DebugTools isVisible={true} />
           </div>
 
           <div className="mt-8">
